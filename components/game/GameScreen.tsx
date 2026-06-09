@@ -20,7 +20,7 @@ import { useScoreRoom } from "@/hooks/useScoreRoom";
 import { useTournament } from "@/context/TournamentContext";
 import { unlockAudio } from "@/lib/audio/pianoPlayer";
 import { REVEAL_NAME_DELAY } from "@/lib/game/constants";
-import { getStoredRoomCode } from "@/lib/scores/roomService";
+import { getStoredRoomCode, setGamePhase } from "@/lib/scores/roomService";
 import {
   isFirstRoundOfSection,
   isLastRoundOfSection,
@@ -70,6 +70,17 @@ export function GameScreen() {
     if (!roomCode || !scoreRoom) return;
     void updateCurrentRound(queueIndex + 1);
   }, [roomCode, scoreRoom, queueIndex, updateCurrentRound]);
+
+  useEffect(() => {
+    if (!roomCode) return;
+    void setGamePhase(roomCode, "playing");
+  }, [roomCode]);
+
+  useEffect(() => {
+    if (phase === "complete" && roomCode) {
+      void setGamePhase(roomCode, "complete");
+    }
+  }, [phase, roomCode]);
 
   const playSiren = useCallback(() => {
     if (!sirenRef.current) {
@@ -143,7 +154,7 @@ export function GameScreen() {
   if (phase === "complete") {
     if (scoreRoom && Object.keys(scoreRoom.teams ?? {}).length > 0) {
       return (
-        <FinalCelebration teams={scoreRoom.teams} />
+        <FinalCelebration teams={scoreRoom.teams} roomCode={roomCode} />
       );
     }
     return (

@@ -2,6 +2,7 @@ import {
   get,
   onValue,
   ref,
+  remove,
   runTransaction,
   set,
   update,
@@ -9,8 +10,11 @@ import {
 } from "firebase/database";
 import { getFirebaseDatabase, isFirebaseConfigured } from "@/lib/firebase/client";
 import {
+  DEFAULT_CELEBRATION_STATE,
   isValidRoomCode,
   normalizeScoreRoom,
+  type CelebrationState,
+  type GamePhase,
   type ScoreRoom,
   type Team,
 } from "@/lib/types/scoreRoom";
@@ -28,7 +32,13 @@ function emptyRoom(roomCode: string): ScoreRoom {
     teams: {},
     scoredRounds: {},
     createdAt: Date.now(),
+    gamePhase: "playing",
+    celebration: { ...DEFAULT_CELEBRATION_STATE },
   };
+}
+
+function celebrationWebrtcRef(roomCode: string) {
+  return ref(getFirebaseDatabase(), `rooms/${roomCode}/webrtc/celebration`);
 }
 
 export function generateRoomCode(): string {
@@ -232,4 +242,42 @@ export function storeRoomCode(code: string): void {
 export function clearStoredRoomCode(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem("scoreRoomCode");
+}
+
+export async function setGamePhase(
+  roomCode: string,
+  gamePhase: GamePhase,
+): Promise<void> {
+  await update(roomRef(roomCode), { gamePhase });
+}
+
+export async function requestCelebration(roomCode: string): Promise<void> {
+  await update(roomRef(roomCode), {
+    celebration: {
+      ...DEFAULT_CELEBRATION_STATE,
+      requested: true,
+    },
+  });
+}
+
+export async function setCelebrationActive(
+  roomCode: string,
+  active: boolean,
+): Promise<void> {
+  const celebration: CelebrationState = {
+    requested: true,
+    active,
+    startedAt: active ? Date.now() : undefined,
+  };
+  await update(roomRef(roomCode), { celebration });
+}
+
+export async function clearCelebrationState(roomCode: string): Promise<void> {
+  await update(roomRef(roomCode), {
+    celebration: { ...DEFAULT_CELEBRATION_STATE },
+  });
+}
+
+export async function clearCelebrationSignaling(roomCode: string): Promise<void> {
+  await remove(celebrationWebrtcRef(roomCode));
 }

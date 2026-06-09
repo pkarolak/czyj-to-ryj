@@ -6,6 +6,19 @@ export type Team = {
   photoDataUrl: string | null;
 };
 
+export type GamePhase = "playing" | "complete";
+
+export type CelebrationState = {
+  requested: boolean;
+  active: boolean;
+  startedAt?: number;
+};
+
+export const DEFAULT_CELEBRATION_STATE: CelebrationState = {
+  requested: false,
+  active: false,
+};
+
 export type ScoreRoom = {
   roomCode: string;
   showScores: boolean;
@@ -14,6 +27,8 @@ export type ScoreRoom = {
   teams: Record<string, Team>;
   scoredRounds: Record<string, string[]>;
   createdAt: number;
+  gamePhase?: GamePhase;
+  celebration?: CelebrationState;
 };
 
 export type TeamWithId = Team & { id: string };
@@ -47,6 +62,11 @@ export function normalizeScoreRoom(
     teams: raw?.teams ?? {},
     scoredRounds: raw?.scoredRounds ?? {},
     createdAt: raw?.createdAt ?? Date.now(),
+    gamePhase: raw?.gamePhase === "complete" ? "complete" : "playing",
+    celebration: {
+      ...DEFAULT_CELEBRATION_STATE,
+      ...raw?.celebration,
+    },
   };
 }
 

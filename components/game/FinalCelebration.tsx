@@ -1,29 +1,60 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Video } from "lucide-react";
 import Link from "next/link";
 import { Confetti } from "@/components/game/Confetti";
+import { CelebrationStreamOverlay } from "@/components/game/CelebrationStreamOverlay";
 import {
   getWinnerDisplayConfig,
   WinnerCelebrationCard,
 } from "@/components/game/WinnerCelebrationCard";
 import { LeaderboardDisplay } from "@/components/scores/LeaderboardDisplay";
 import { Button } from "@/components/ui/Button";
+import { useCelebrationViewer } from "@/hooks/useCelebrationStream";
+import { isFirebaseConfigured } from "@/lib/firebase/client";
 import { getTopTeams, type Team } from "@/lib/types/scoreRoom";
 
 type FinalCelebrationProps = {
   teams: Record<string, Team>;
+  roomCode: string | null;
 };
 
-export function FinalCelebration({ teams }: FinalCelebrationProps) {
+export function FinalCelebration({ teams, roomCode }: FinalCelebrationProps) {
   const winners = getTopTeams(teams);
   const multiple = winners.length > 1;
   const showLeaderboard = winners.length < Object.keys(teams).length;
   const layout = getWinnerDisplayConfig(winners.length);
+  const canStream = Boolean(roomCode && isFirebaseConfigured());
+  const { status, error, remoteStream, isOpen, openStream, closeStream } =
+    useCelebrationViewer(roomCode);
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-ink">
       <Confetti />
+
+      {canStream && (
+        <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="gap-2"
+            onClick={() => void openStream()}
+          >
+            <Video className="h-4 w-4" />
+            Jak oni świętują
+          </Button>
+        </div>
+      )}
+
+      {isOpen && (
+        <CelebrationStreamOverlay
+          status={status}
+          error={error}
+          remoteStream={remoteStream}
+          onClose={() => void closeStream()}
+        />
+      )}
 
       <div className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div

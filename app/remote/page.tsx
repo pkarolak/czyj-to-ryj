@@ -4,6 +4,7 @@ import { ChevronDown, Monitor, Plus, Unplug } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { CelebrationCameraPanel } from "@/components/scores/CelebrationCameraPanel";
 import { FirebaseNotice } from "@/components/scores/FirebaseNotice";
 import { RoomCodeInput } from "@/components/scores/RoomCodeInput";
 import { ScoreControlCard } from "@/components/scores/ScoreControlCard";
@@ -142,6 +143,14 @@ function RemoteContent() {
           </div>
         )}
       </section>
+
+      {roomCode && (
+        <CelebrationCameraPanel
+          roomCode={roomCode}
+          gamePhase={room.gamePhase ?? "playing"}
+          celebration={room.celebration ?? { requested: false, active: false }}
+        />
+      )}
 
       <div className="mt-8">
         <Button
