@@ -143,10 +143,7 @@ export function GameScreen() {
   if (phase === "complete") {
     if (scoreRoom && Object.keys(scoreRoom.teams ?? {}).length > 0) {
       return (
-        <FinalCelebration
-          teams={scoreRoom.teams}
-          roundCount={queue.length}
-        />
+        <FinalCelebration teams={scoreRoom.teams} />
       );
     }
     return (
