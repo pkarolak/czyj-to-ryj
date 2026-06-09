@@ -8,6 +8,7 @@ import { PhotoEditor } from "@/components/prepare/PhotoEditor";
 import { PhotoList } from "@/components/prepare/PhotoList";
 import { PhotoUpload } from "@/components/prepare/PhotoUpload";
 import { PrepareToolbar } from "@/components/prepare/PrepareToolbar";
+import { ScoreSessionPanel } from "@/components/prepare/ScoreSessionPanel";
 import { useTournament } from "@/context/TournamentContext";
 
 export default function PreparePage() {
@@ -36,7 +37,7 @@ export default function PreparePage() {
             Tryb prowadzącego
           </h1>
           <p className="text-sm text-cream/50">
-            Dodaj zdjęcia i wybierz detale do zgadywania
+            Dodaj zdjęcia, skadruj detale, podaj imiona i oznacz postacie
           </p>
         </div>
       </header>
@@ -47,6 +48,7 @@ export default function PreparePage() {
         className="flex flex-col gap-8"
       >
         <PrepareToolbar />
+        <ScoreSessionPanel />
         <PhotoUpload />
 
         {selectedId ? (

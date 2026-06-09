@@ -12,7 +12,7 @@ export function PrepareToolbar() {
   const {
     tournament,
     isSaving,
-    allCropped,
+    allReady,
     setName,
     resetTournament,
     replaceTournament,
@@ -100,7 +100,7 @@ export function PrepareToolbar() {
           Wyczyść wszystko
         </Button>
 
-        {allCropped ? (
+        {allReady ? (
           <Link href="/game">
             <Button size="lg">
               <Gamepad2 className="h-5 w-5" />
@@ -108,7 +108,11 @@ export function PrepareToolbar() {
             </Button>
           </Link>
         ) : (
-          <Button size="lg" disabled title="Skadruj wszystkie zdjęcia">
+          <Button
+            size="lg"
+            disabled
+            title="Skadruj, podaj imię i ustaw marker dla każdego zdjęcia"
+          >
             <Gamepad2 className="h-5 w-5" />
             Przejdź do gry
           </Button>

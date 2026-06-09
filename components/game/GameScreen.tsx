@@ -3,12 +3,17 @@
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GuessingPhase } from "@/components/game/GuessingPhase";
+import { RevealedPhase } from "@/components/game/RevealedPhase";
+import { RoundScoringPanel } from "@/components/game/RoundScoringPanel";
+import { ScoresOverlay } from "@/components/game/ScoresOverlay";
 import { Button } from "@/components/ui/Button";
+import { useScoreRoom } from "@/hooks/useScoreRoom";
 import { useTournament } from "@/context/TournamentContext";
-import { REVEAL_LAYOUT_ID } from "@/lib/game/constants";
-import { allRoundsCropped } from "@/lib/types/tournament";
+import { REVEAL_NAME_DELAY } from "@/lib/game/constants";
+import { getStoredRoomCode } from "@/lib/scores/roomService";
+import { allRoundsReady } from "@/lib/types/tournament";
 
 type GamePhase = "intro" | "guessing" | "revealed" | "complete";
 
@@ -16,11 +21,23 @@ export function GameScreen() {
   const { tournament, isLoading } = useTournament();
   const [roundIndex, setRoundIndex] = useState(0);
   const [phase, setPhase] = useState<GamePhase>("intro");
+  const [roomCode] = useState(() => getStoredRoomCode());
   const sirenRef = useRef<HTMLAudioElement | null>(null);
+
+  const {
+    room: scoreRoom,
+    recordRoundScore,
+    updateCurrentRound,
+  } = useScoreRoom(roomCode);
 
   const rounds = tournament.rounds;
   const round = rounds[roundIndex] ?? null;
   const isLastRound = roundIndex >= rounds.length - 1;
+
+  useEffect(() => {
+    if (!roomCode || !scoreRoom) return;
+    void updateCurrentRound(roundIndex + 1);
+  }, [roomCode, scoreRoom, roundIndex, updateCurrentRound]);
 
   const playSiren = useCallback(() => {
     if (!sirenRef.current) {
@@ -45,6 +62,11 @@ export function GameScreen() {
     setPhase("intro");
   };
 
+  const handleRoundScore = async (teamIds: string[]) => {
+    if (!roomCode || !round) return;
+    await recordRoundScore(round.id, teamIds, roundIndex + 1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-cream/50">
@@ -53,13 +75,13 @@ export function GameScreen() {
     );
   }
 
-  if (!allRoundsCropped(rounds)) {
+  if (!allRoundsReady(rounds)) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
         <h1 className="font-display text-4xl text-gold">Brak gotowych rund</h1>
         <p className="max-w-md text-cream/60">
-          Upewnij się, że wszystkie zdjęcia mają skadrowany detal w trybie
-          prowadzącego.
+          Każde zdjęcie musi mieć detal, imię i nazwisko oraz marker postaci w
+          trybie prowadzącego.
         </p>
         <Link href="/prepare">
           <Button variant="secondary">Tryb prowadzącego</Button>
@@ -70,35 +92,43 @@ export function GameScreen() {
 
   if (phase === "complete") {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center"
-      >
-        <h1 className="font-display text-5xl text-gold">Koniec teleturnieju!</h1>
-        <p className="text-cream/60">
-          Wszystkie {rounds.length} rund zakończone. Dziękujemy za grę!
-        </p>
-        <div className="flex gap-4">
-          <Link href="/">
-            <Button variant="secondary">Strona główna</Button>
-          </Link>
-          <Link href="/prepare">
-            <Button>Przygotuj nową edycję</Button>
-          </Link>
-        </div>
-      </motion.div>
+      <>
+        <ScoresOverlay room={scoreRoom} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center"
+        >
+          <h1 className="font-display text-5xl text-gold">Koniec teleturnieju!</h1>
+          <p className="text-cream/60">
+            Wszystkie {rounds.length} rund zakończone. Dziękujemy za grę!
+          </p>
+          <div className="flex gap-4">
+            <Link href="/">
+              <Button variant="secondary">Strona główna</Button>
+            </Link>
+            <Link href="/prepare">
+              <Button>Przygotuj nową edycję</Button>
+            </Link>
+          </div>
+        </motion.div>
+      </>
     );
   }
 
   if (!round?.croppedPreviewUrl) return null;
 
+  const hasScoreTeams =
+    scoreRoom && Object.keys(scoreRoom.teams ?? {}).length > 0;
+
   return (
     <div className="relative flex min-h-dvh flex-col">
+      <ScoresOverlay room={scoreRoom} />
+
       <header className="flex items-center gap-4 px-4 py-6 sm:px-8">
         <Link
           href="/"
-          className="rounded-full p-2 text-cream/50 transition-colors hover:bg-white/5 hover:text-cream"
+          className="shrink-0 rounded-full p-2 text-cream/50 transition-colors hover:bg-white/5 hover:text-cream"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -109,8 +139,29 @@ export function GameScreen() {
           <p className="font-display text-lg text-cream/80">
             Runda {roundIndex + 1} / {rounds.length}
           </p>
+          {roomCode && (
+            <p className="text-xs text-cream/30">Punktacja: {roomCode}</p>
+          )}
         </div>
-        <div className="w-9" />
+        {phase === "revealed" ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: REVEAL_NAME_DELAY + 0.3 }}
+            className="shrink-0"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextRound}
+              className="text-xs sm:text-sm"
+            >
+              {isLastRound ? "Zakończ" : "Dalej"}
+            </Button>
+          </motion.div>
+        ) : (
+          <div className="w-9 shrink-0" />
+        )}
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center px-4 pb-12">
@@ -146,35 +197,22 @@ export function GameScreen() {
               />
             )}
 
-            {phase === "revealed" && round.originalPreviewUrl && (
+            {phase === "revealed" && (
               <motion.div
                 key="revealed"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex w-full max-w-3xl flex-col items-center"
+                className="flex w-full flex-col items-center"
               >
-                <motion.div
-                  layoutId={REVEAL_LAYOUT_ID}
-                  className="relative z-10 max-h-[70vh] w-full max-w-2xl overflow-hidden rounded-2xl shadow-2xl shadow-black/60 ring-2 ring-gold/30"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- oryginał dopiero po kliknięciu */}
-                  <img
-                    src={round.originalPreviewUrl}
-                    alt="Ujawnione zdjęcie"
-                    className="h-full w-full object-contain"
+                <RevealedPhase round={round} />
+                {hasScoreTeams && scoreRoom && (
+                  <RoundScoringPanel
+                    key={round.id}
+                    room={scoreRoom}
+                    roundId={round.id}
+                    roundNumber={roundIndex + 1}
+                    onConfirm={handleRoundScore}
+                    onSkip={() => {}}
                   />
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                  className="mt-10"
-                >
-                  <Button variant="ghost" size="md" onClick={handleNextRound}>
-                    {isLastRound ? "Zakończ teleturniej" : "Kolejna runda"}
-                  </Button>
-                </motion.div>
+                )}
               </motion.div>
             )}
           </LayoutGroup>

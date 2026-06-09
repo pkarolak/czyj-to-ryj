@@ -5,6 +5,7 @@ import {
   MAX_IMPORT_SIZE_BYTES,
   TOURNAMENT_VERSION,
   type ExportedTournament,
+  type FocusMarker,
   type RoundEntry,
   type TournamentState,
 } from "@/lib/types/tournament";
@@ -20,6 +21,16 @@ function isCropMeta(value: unknown): boolean {
     typeof crop.y === "number" &&
     typeof crop.width === "number" &&
     typeof crop.height === "number"
+  );
+}
+
+function isFocusMarker(value: unknown): value is FocusMarker {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.x === "number" &&
+    typeof v.y === "number" &&
+    typeof v.radius === "number"
   );
 }
 
@@ -40,7 +51,11 @@ function isExportedTournament(value: unknown): value is ExportedTournament {
       typeof r.originalImageBase64 === "string" &&
       (r.croppedImageBase64 === null ||
         typeof r.croppedImageBase64 === "string") &&
-      (r.cropCoordinates === null || isCropMeta(r.cropCoordinates))
+      (r.cropCoordinates === null || isCropMeta(r.cropCoordinates)) &&
+      (r.personName === undefined || typeof r.personName === "string") &&
+      (r.focusMarker === undefined ||
+        r.focusMarker === null ||
+        isFocusMarker(r.focusMarker))
     );
   });
 }
@@ -74,7 +89,13 @@ export async function parseTournamentFile(
         `round-${round.id}.jpeg`,
       );
 
-      if (!round.croppedImageBase64) return base;
+      const withMeta = {
+        ...base,
+        personName: round.personName ?? "",
+        focusMarker: round.focusMarker ?? null,
+      };
+
+      if (!round.croppedImageBase64) return withMeta;
 
       const croppedImageBlob = await normalizeImageBlob(
         base64ToBlob(round.croppedImageBase64),
@@ -82,7 +103,7 @@ export async function parseTournamentFile(
       );
 
       return {
-        ...base,
+        ...withMeta,
         croppedImageBlob,
         croppedPreviewUrl: await blobToDataUrl(croppedImageBlob),
         cropCoordinates: round.cropCoordinates,

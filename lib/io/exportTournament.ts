@@ -15,6 +15,8 @@ export async function exportTournamentToJson(
         ? await blobToBase64(round.croppedImageBlob)
         : null,
       cropCoordinates: round.cropCoordinates,
+      personName: round.personName,
+      focusMarker: round.focusMarker,
     })),
   );
 

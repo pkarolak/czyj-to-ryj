@@ -15,8 +15,10 @@ import { isImageFile } from "@/lib/images/fileToBlob";
 import { clearTournament, loadTournament, saveTournament } from "@/lib/storage/tournamentStore";
 import {
   allRoundsCropped,
+  allRoundsReady,
   createEmptyTournament,
   type CropMeta,
+  type FocusMarker,
   type TournamentState,
 } from "@/lib/types/tournament";
 
@@ -26,6 +28,7 @@ type TournamentContextValue = {
   isSaving: boolean;
   isReady: boolean;
   allCropped: boolean;
+  allReady: boolean;
   setName: (name: string) => void;
   addPhotos: (files: File[]) => Promise<void>;
   removeRound: (id: string) => void;
@@ -34,6 +37,10 @@ type TournamentContextValue = {
     croppedImageBlob: Blob,
     cropCoordinates: CropMeta,
   ) => Promise<void>;
+  updateRoundDetails: (
+    id: string,
+    details: { personName: string; focusMarker: FocusMarker },
+  ) => void;
   resetTournament: () => Promise<void>;
   replaceTournament: (state: TournamentState) => void;
 };
@@ -117,8 +124,25 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
         ...prev,
         rounds: prev.rounds.map((round) =>
           round.id === id
-            ? { ...round, ...cropped, cropCoordinates }
+            ? {
+                ...round,
+                ...cropped,
+                cropCoordinates,
+                focusMarker: null,
+              }
             : round,
+        ),
+      }));
+    },
+    [],
+  );
+
+  const updateRoundDetails = useCallback(
+    (id: string, details: { personName: string; focusMarker: FocusMarker }) => {
+      setTournament((prev) => ({
+        ...prev,
+        rounds: prev.rounds.map((round) =>
+          round.id === id ? { ...round, ...details } : round,
         ),
       }));
     },
@@ -143,10 +167,12 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       isSaving,
       isReady,
       allCropped: allRoundsCropped(tournament.rounds),
+      allReady: allRoundsReady(tournament.rounds),
       setName,
       addPhotos,
       removeRound,
       updateRoundCrop,
+      updateRoundDetails,
       resetTournament,
       replaceTournament,
     }),
@@ -159,6 +185,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       addPhotos,
       removeRound,
       updateRoundCrop,
+      updateRoundDetails,
       resetTournament,
       replaceTournament,
     ],

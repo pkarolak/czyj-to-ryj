@@ -1,19 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import { CircularCropper } from "@/components/crop/CircularCropper";
+import { RoundAnnotator } from "@/components/prepare/RoundAnnotator";
 import { Card } from "@/components/ui/Card";
 import { useTournament } from "@/context/TournamentContext";
+import { isRoundCropped } from "@/lib/types/tournament";
 
 type PhotoEditorProps = {
   roundId: string | null;
   onDone: () => void;
 };
 
+type EditorStep = "crop" | "annotate";
+
 export function PhotoEditor({ roundId, onDone }: PhotoEditorProps) {
   const { tournament, updateRoundCrop } = useTournament();
-
   const roundIndex = tournament.rounds.findIndex((r) => r.id === roundId);
   const round = roundIndex >= 0 ? tournament.rounds[roundIndex] : null;
+
+  const [step, setStep] = useState<EditorStep>(() =>
+    round && isRoundCropped(round) ? "annotate" : "crop",
+  );
 
   if (!round) return null;
 
@@ -37,6 +45,17 @@ export function PhotoEditor({ roundId, onDone }: PhotoEditorProps) {
     );
   }
 
+  if (step === "annotate" && isRoundCropped(round)) {
+    return (
+      <RoundAnnotator
+        round={round}
+        roundIndex={roundIndex}
+        onDone={onDone}
+        onReCrop={() => setStep("crop")}
+      />
+    );
+  }
+
   return (
     <Card className="p-6">
       <h2 className="mb-4 font-display text-2xl text-gold">
@@ -50,7 +69,7 @@ export function PhotoEditor({ roundId, onDone }: PhotoEditorProps) {
         imageSrc={imageSrc}
         onConfirm={async (blob, meta) => {
           await updateRoundCrop(round.id, blob, meta);
-          onDone();
+          setStep("annotate");
         }}
         onCancel={onDone}
       />

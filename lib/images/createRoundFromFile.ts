@@ -16,6 +16,8 @@ export async function createRoundFromFile(file: File): Promise<RoundEntry> {
     croppedImageBlob: null,
     croppedPreviewUrl: null,
     cropCoordinates: null,
+    personName: "",
+    focusMarker: null,
   };
 }
 
@@ -34,6 +36,8 @@ export async function createRoundFromBlob(
     croppedImageBlob: null,
     croppedPreviewUrl: null,
     cropCoordinates: null,
+    personName: "",
+    focusMarker: null,
   };
 }
 

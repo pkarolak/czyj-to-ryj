@@ -12,6 +12,8 @@ const withSerwist = withSerwistInit({
     { url: "/prepare", revision },
     { url: "/game", revision },
     { url: "/offline", revision },
+    { url: "/remote", revision },
+    { url: "/scores", revision },
   ],
 });
 

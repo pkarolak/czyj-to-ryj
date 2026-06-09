@@ -33,6 +33,8 @@ async function hydrateRound(round: RoundEntry): Promise<RoundEntry | null> {
         ...round,
         croppedPreviewUrl,
         cropCoordinates: round.cropCoordinates ?? null,
+        personName: round.personName ?? "",
+        focusMarker: round.focusMarker ?? null,
       };
     }
 
@@ -51,6 +53,8 @@ async function hydrateRound(round: RoundEntry): Promise<RoundEntry | null> {
           croppedImageBlob: croppedBlob,
           croppedPreviewUrl: await blobToDataUrl(croppedBlob),
           cropCoordinates: round.cropCoordinates ?? null,
+          personName: round.personName ?? "",
+          focusMarker: round.focusMarker ?? null,
         };
       }
       return hydrated;

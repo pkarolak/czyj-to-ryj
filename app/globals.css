@@ -32,3 +32,13 @@ body {
 .font-display {
   font-family: var(--font-display), system-ui, sans-serif;
 }
+
+@keyframes marker-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(245, 197, 66, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(245, 197, 66, 0.85);
+  }
+}
