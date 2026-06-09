@@ -5,6 +5,7 @@ import { isFirebaseConfigured } from "@/lib/firebase/client";
 import {
   adjustTeamScore,
   addTeam,
+  removeTeam,
   scoreRound,
   setCurrentRound,
   setPointsPerCorrect,
@@ -20,6 +21,7 @@ type UseScoreRoomResult = {
   error: string | null;
   adjustScore: (teamId: string, delta: number) => Promise<void>;
   addTeamToRoom: (team: Team) => Promise<string>;
+  removeTeamFromRoom: (teamId: string) => Promise<void>;
   setShowScores: (show: boolean) => Promise<void>;
   recordRoundScore: (
     roundId: string,
@@ -78,6 +80,14 @@ export function useScoreRoom(roomCode: string | null): UseScoreRoomResult {
     [roomCode],
   );
 
+  const removeTeamFromRoom = useCallback(
+    async (teamId: string) => {
+      if (!roomCode) return;
+      await removeTeam(roomCode, teamId);
+    },
+    [roomCode],
+  );
+
   const setShowScores = useCallback(
     async (show: boolean) => {
       if (!roomCode) return;
@@ -120,6 +130,7 @@ export function useScoreRoom(roomCode: string | null): UseScoreRoomResult {
     error: shouldSubscribe ? error : null,
     adjustScore,
     addTeamToRoom,
+    removeTeamFromRoom,
     setShowScores,
     recordRoundScore,
     updateCurrentRound,

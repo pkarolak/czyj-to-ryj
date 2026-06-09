@@ -99,6 +99,30 @@ export async function addTeam(
   return teamId;
 }
 
+export async function removeTeam(
+  roomCode: string,
+  teamId: string,
+): Promise<void> {
+  const baseRef = roomRef(roomCode);
+
+  await runTransaction(baseRef, (room) => {
+    if (!room) return room;
+
+    const data = room as ScoreRoom;
+    const teams = { ...(data.teams ?? {}) };
+    if (!teams[teamId]) return data;
+
+    delete teams[teamId];
+
+    const scoredRounds = { ...(data.scoredRounds ?? {}) };
+    for (const roundId of Object.keys(scoredRounds)) {
+      scoredRounds[roundId] = scoredRounds[roundId].filter((id) => id !== teamId);
+    }
+
+    return { ...data, teams, scoredRounds };
+  });
+}
+
 export async function adjustTeamScore(
   roomCode: string,
   teamId: string,

@@ -1,14 +1,19 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import type { TeamWithId } from "@/lib/types/scoreRoom";
 
 type ScoreControlCardProps = {
   team: TeamWithId;
   onAdjust: (delta: number) => void;
+  onRemove?: () => void;
 };
 
-export function ScoreControlCard({ team, onAdjust }: ScoreControlCardProps) {
+export function ScoreControlCard({
+  team,
+  onAdjust,
+  onRemove,
+}: ScoreControlCardProps) {
   return (
     <div
       className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3"
@@ -56,6 +61,16 @@ export function ScoreControlCard({ team, onAdjust }: ScoreControlCardProps) {
         >
           <Plus className="h-6 w-6" />
         </button>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 transition-colors active:bg-red-500/20"
+            aria-label={`Usuń drużynę ${team.name}`}
+          >
+            <Trash2 className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );

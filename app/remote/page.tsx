@@ -30,6 +30,7 @@ function RemoteContent() {
     error,
     adjustScore,
     addTeamToRoom,
+    removeTeamFromRoom,
     setShowScores,
   } = useScoreRoom(roomCode);
 
@@ -129,6 +130,15 @@ function RemoteContent() {
                 key={team.id}
                 team={team}
                 onAdjust={(delta) => adjustScore(team.id, delta)}
+                onRemove={() => {
+                  if (
+                    confirm(
+                      `Usunąć drużynę „${team.name}"? Tej operacji nie można cofnąć.`,
+                    )
+                  ) {
+                    void removeTeamFromRoom(team.id);
+                  }
+                }}
               />
             ))}
           </div>
