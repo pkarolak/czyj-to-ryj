@@ -205,9 +205,7 @@ export function GameScreen() {
                     key={round.id}
                     room={scoreRoom}
                     roundId={round.id}
-                    roundNumber={roundIndex + 1}
                     onConfirm={handleRoundScore}
-                    onSkip={() => {}}
                   />
                 )}
               </motion.div>
