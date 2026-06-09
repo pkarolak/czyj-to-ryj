@@ -1,4 +1,15 @@
+async function blobToBase64Node(blob: Blob): Promise<string> {
+  const buffer = await blob.arrayBuffer();
+  const mime = blob.type || "application/octet-stream";
+  const base64 = Buffer.from(buffer).toString("base64");
+  return `data:${mime};base64,${base64}`;
+}
+
 export function blobToBase64(blob: Blob): Promise<string> {
+  if (typeof FileReader === "undefined") {
+    return blobToBase64Node(blob);
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);

@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:io": "tsx scripts/verify-tournament-io.ts"
   },
   "dependencies": {
     "firebase": "^12.14.0",
@@ -29,6 +30,7 @@
     "eslint-config-next": "16.2.7",
     "serwist": "^9.5.11",
     "tailwindcss": "^4",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }

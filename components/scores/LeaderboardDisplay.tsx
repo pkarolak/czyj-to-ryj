@@ -7,7 +7,10 @@ type LeaderboardDisplayProps = {
   teams: Record<string, Team>;
   title?: string;
   compact?: boolean;
+  /** @deprecated use hideTopCount */
   hideWinner?: boolean;
+  /** Ukryj N drużyn z czołówki (np. wszystkich remisujących zwycięzców). */
+  hideTopCount?: number;
 };
 
 export function LeaderboardDisplay({
@@ -15,9 +18,11 @@ export function LeaderboardDisplay({
   title = "Punktacja",
   compact = false,
   hideWinner = false,
+  hideTopCount = 0,
 }: LeaderboardDisplayProps) {
   const sorted = sortTeamsByScore(teams);
-  const visible = hideWinner && sorted.length > 0 ? sorted.slice(1) : sorted;
+  const skip = hideTopCount > 0 ? hideTopCount : hideWinner ? 1 : 0;
+  const visible = skip > 0 ? sorted.slice(skip) : sorted;
 
   if (!sorted.length) {
     return (
@@ -45,7 +50,7 @@ export function LeaderboardDisplay({
         }`}
       >
         {visible.map((team, index) => {
-          const rank = hideWinner ? index + 2 : index + 1;
+          const rank = skip > 0 ? index + skip + 1 : index + 1;
           return (
             <motion.div
               key={team.id}

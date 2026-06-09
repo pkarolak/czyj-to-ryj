@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Confetti } from "@/components/game/Confetti";
+import { WinnerCelebrationCard } from "@/components/game/WinnerCelebrationCard";
 import { LeaderboardDisplay } from "@/components/scores/LeaderboardDisplay";
 import { Button } from "@/components/ui/Button";
-import { sortTeamsByScore, type Team } from "@/lib/types/scoreRoom";
+import { getTopTeams, type Team } from "@/lib/types/scoreRoom";
 
 type FinalCelebrationProps = {
   teams: Record<string, Team>;
@@ -13,8 +14,9 @@ type FinalCelebrationProps = {
 };
 
 export function FinalCelebration({ teams, roundCount }: FinalCelebrationProps) {
-  const sorted = sortTeamsByScore(teams);
-  const winner = sorted[0];
+  const winners = getTopTeams(teams);
+  const multiple = winners.length > 1;
+  const compactCards = winners.length > 1;
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-ink">
@@ -33,62 +35,49 @@ export function FinalCelebration({ teams, roundCount }: FinalCelebrationProps) {
           </p>
         </div>
 
-        {winner && (
+        {winners.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mx-auto mt-8 w-full max-w-3xl px-6"
+            className="mx-auto mt-8 w-full max-w-4xl px-6"
           >
-            <motion.div
-              animate={{
-                boxShadow: [
-                  "0 0 0 0 rgba(245,197,66,0)",
-                  "0 0 40px 8px rgba(245,197,66,0.35)",
-                  "0 0 0 0 rgba(245,197,66,0)",
-                ],
-              }}
-              transition={{ repeat: Infinity, duration: 1.6 }}
-              className="flex flex-col items-center gap-4 rounded-3xl border-2 border-gold/50 bg-gold/10 px-8 py-10 text-center sm:flex-row sm:text-left"
-            >
-              {winner.photoDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={winner.photoDataUrl}
-                  alt=""
-                  className="h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-gold/40 sm:h-32 sm:w-32"
-                />
-              ) : (
-                <div
-                  className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full font-display text-4xl text-ink ring-4 ring-gold/40 sm:h-32 sm:w-32 sm:text-5xl"
-                  style={{ backgroundColor: winner.color }}
-                >
-                  {winner.name.charAt(0).toUpperCase()}
-                </div>
+            <p className="mb-4 text-center text-sm uppercase tracking-widest text-gold/70">
+              {multiple ? "Zwycięzcy" : "Zwycięzca"}
+              {multiple && (
+                <span className="mt-1 block text-xs normal-case tracking-normal text-cream/40">
+                  Remis — {winners.length}{" "}
+                  {winners.length < 5
+                    ? "drużyny na szczycie"
+                    : "drużyn na szczycie"}
+                </span>
               )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm uppercase tracking-widest text-gold/70">
-                  Zwycięzca
-                </p>
-                <p className="font-display text-4xl text-gold sm:text-5xl">
-                  {winner.name}
-                </p>
-                <p className="text-cream/60">Kapitan: {winner.captain}</p>
-              </div>
-              <p className="font-display text-6xl text-gold sm:text-7xl">
-                {winner.score}
-              </p>
-            </motion.div>
+            </p>
+            <div
+              className={`flex flex-col gap-4 ${
+                winners.length === 2 ? "sm:grid sm:grid-cols-2" : ""
+              }`}
+            >
+              {winners.map((team) => (
+                <WinnerCelebrationCard
+                  key={team.id}
+                  team={team}
+                  compact={compactCards}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
 
-        <div className="mt-6 flex-1 overflow-auto pb-8">
-          <LeaderboardDisplay
-            teams={teams}
-            title="Pełna tabela"
-            compact
-            hideWinner={!!winner}
-          />
-        </div>
+        {winners.length < Object.keys(teams).length && (
+          <div className="mt-6 flex-1 overflow-auto pb-8">
+            <LeaderboardDisplay
+              teams={teams}
+              title="Pełna tabela"
+              compact
+              hideTopCount={winners.length}
+            />
+          </div>
+        )}
 
         <div className="relative z-10 flex justify-center gap-4 border-t border-white/10 p-6">
           <Link href="/">

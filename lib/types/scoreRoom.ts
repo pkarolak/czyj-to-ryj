@@ -57,3 +57,13 @@ export function sortTeamsByScore(
     .map(([id, team]) => ({ id, ...team }))
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, "pl"));
 }
+
+/** Wszystkie drużyny z najwyższym wynikiem (remis o zwycięstwo). */
+export function getTopTeams(
+  teams: Record<string, Team> | null | undefined,
+): TeamWithId[] {
+  const sorted = sortTeamsByScore(teams);
+  if (!sorted.length) return [];
+  const topScore = sorted[0].score;
+  return sorted.filter((team) => team.score === topScore);
+}

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
 import { downloadTournament } from "@/lib/io/exportTournament";
 import { parseTournamentFile } from "@/lib/io/importTournament";
-import { buildShowQueue } from "@/lib/types/tournament";
+import { buildShowQueue, getMaxImportSizeLabel } from "@/lib/types/tournament";
 
 export function PrepareToolbar() {
   const {
@@ -95,6 +95,9 @@ export function PrepareToolbar() {
           <Upload className="h-4 w-4" />
           Importuj teleturniej
         </Button>
+        <span className="self-center text-xs text-cream/35">
+          Import do {getMaxImportSizeLabel()}
+        </span>
         <input
           ref={importRef}
           type="file"

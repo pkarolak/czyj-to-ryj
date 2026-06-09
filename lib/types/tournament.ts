@@ -114,7 +114,7 @@ export type ExportedTournament = {
   harmonyRounds: ExportedHarmonyRound[];
   triviaRounds: ExportedTriviaRound[];
   showOrder: CompetitionId[];
-  timerSeconds?: TimerSettings;
+  timerSeconds: TimerSettings;
 };
 
 /** @deprecated v1 shape kept for migration */
@@ -128,7 +128,12 @@ export type LegacyTournamentState = {
 };
 
 export const TOURNAMENT_VERSION = 2 as const;
-export const MAX_IMPORT_SIZE_BYTES = 50 * 1024 * 1024;
+/** Limit importu JSON z base64 — duże teleturnieje ze zdjęciami mogą mieć 100+ MB. */
+export const MAX_IMPORT_SIZE_BYTES = 250 * 1024 * 1024;
+
+export function getMaxImportSizeLabel(): string {
+  return `${Math.round(MAX_IMPORT_SIZE_BYTES / 1024 / 1024)} MB`;
+}
 export const MAX_HARMONY_NOTES = 11;
 
 export const DEFAULT_SHOW_ORDER: CompetitionId[] = [

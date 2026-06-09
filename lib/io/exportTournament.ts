@@ -1,4 +1,8 @@
 import { blobToBase64, downloadJson } from "@/lib/io/blobUtils";
+import {
+  normalizeImportedShowOrder,
+  normalizeImportedTimerSettings,
+} from "@/lib/io/tournamentValidation";
 import type {
   ExportedTournament,
   TournamentState,
@@ -42,12 +46,12 @@ export async function exportTournamentToJson(
     faceRounds,
     harmonyRounds: state.harmonyRounds.map((r) => ({
       id: r.id,
-      notes: r.notes,
+      notes: [...r.notes],
       songTitle: r.songTitle,
     })),
     triviaRounds,
-    showOrder: state.showOrder,
-    timerSeconds: state.timerSeconds,
+    showOrder: normalizeImportedShowOrder(state.showOrder),
+    timerSeconds: normalizeImportedTimerSettings(state.timerSeconds),
   };
 }
 
