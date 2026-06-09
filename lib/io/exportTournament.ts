@@ -47,6 +47,7 @@ export async function exportTournamentToJson(
     })),
     triviaRounds,
     showOrder: state.showOrder,
+    timerSeconds: state.timerSeconds,
   };
 }
 

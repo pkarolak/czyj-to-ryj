@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ROUND_SECONDS } from "@/lib/game/constants";
 
 type UseRoundTimerOptions = {
+  totalSeconds: number;
   onTimeUp?: () => void;
 };
 
-export function useRoundTimer({ onTimeUp }: UseRoundTimerOptions = {}) {
-  const [secondsLeft, setSecondsLeft] = useState(ROUND_SECONDS);
+export function useRoundTimer({ totalSeconds, onTimeUp }: UseRoundTimerOptions) {
+  const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -27,6 +27,7 @@ export function useRoundTimer({ onTimeUp }: UseRoundTimerOptions = {}) {
 
   return {
     secondsLeft,
-    progress: secondsLeft / ROUND_SECONDS,
+    progress: totalSeconds > 0 ? secondsLeft / totalSeconds : 0,
+    totalSeconds,
   };
 }

@@ -13,12 +13,12 @@ export function HarmonyRevealPhase({ round }: HarmonyRevealPhaseProps) {
       initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className="flex w-full max-w-2xl flex-col items-center gap-6 text-center"
+      className="flex w-full max-w-3xl flex-col items-center gap-6 text-center"
     >
       <p className="text-sm uppercase tracking-[0.3em] text-gold/60">
         To był utwór
       </p>
-      <h2 className="font-display text-5xl text-gold sm:text-6xl">
+      <h2 className="font-display text-5xl text-gold sm:text-6xl lg:text-7xl">
         {round.songTitle}
       </h2>
     </motion.div>

@@ -1,7 +1,5 @@
 "use client";
 
-import { ROUND_SECONDS } from "@/lib/game/constants";
-
 type TimerRingProps = {
   progress: number;
   size: number;
@@ -49,17 +47,14 @@ type TimerCountdownProps = {
 };
 
 export function TimerCountdown({ secondsLeft }: TimerCountdownProps) {
+  const isUrgent = secondsLeft <= 5 && secondsLeft > 0;
   return (
-    <p className="mt-4 font-display text-3xl tabular-nums text-gold">
+    <p
+      className={`mt-4 font-display text-5xl tabular-nums sm:text-6xl ${
+        isUrgent ? "text-red-400" : "text-gold"
+      }`}
+    >
       {String(secondsLeft).padStart(2, "0")}
-    </p>
-  );
-}
-
-export function TimerRingLabel() {
-  return (
-    <p className="mt-1 text-center text-xs text-cream/40">
-      {ROUND_SECONDS} sekund na zgadywanie
     </p>
   );
 }

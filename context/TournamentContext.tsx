@@ -36,6 +36,7 @@ type TournamentContextValue = {
   showReady: boolean;
   setName: (name: string) => void;
   setShowOrder: (order: CompetitionId[]) => void;
+  setTimerSeconds: (category: CompetitionId, seconds: number) => void;
   addPhotos: (files: File[]) => Promise<void>;
   removeFaceRound: (id: string) => void;
   updateRoundCrop: (
@@ -123,6 +124,19 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
   const setShowOrder = useCallback((order: CompetitionId[]) => {
     setTournament((prev) => ({ ...prev, showOrder: order }));
   }, []);
+
+  const setTimerSeconds = useCallback(
+    (category: CompetitionId, seconds: number) => {
+      setTournament((prev) => ({
+        ...prev,
+        timerSeconds: {
+          ...prev.timerSeconds,
+          [category]: seconds,
+        },
+      }));
+    },
+    [],
+  );
 
   const addPhotos = useCallback(async (files: File[]) => {
     const imageFiles = files.filter(isImageFile);
@@ -301,6 +315,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       showReady: isShowReady(tournament),
       setName,
       setShowOrder,
+      setTimerSeconds,
       addPhotos,
       removeFaceRound,
       updateRoundCrop,
@@ -321,6 +336,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       isReady,
       setName,
       setShowOrder,
+      setTimerSeconds,
       addPhotos,
       removeFaceRound,
       updateRoundCrop,

@@ -1,11 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  TimerCountdown,
-  TimerRing,
-  TimerRingLabel,
-} from "@/components/game/TimerRing";
+import { TimerCountdown, TimerRing } from "@/components/game/TimerRing";
 import { useRoundTimer } from "@/components/game/useRoundTimer";
 import { REVEAL_LAYOUT_ID, REVEAL_TRANSITION } from "@/lib/game/constants";
 
@@ -15,16 +11,21 @@ const RING_SIZE = PHOTO_SIZE + RING_PADDING * 2;
 
 type GuessingPhaseProps = {
   croppedPreviewUrl: string;
+  timerSeconds: number;
   onReveal: () => void;
   onTimeUp: () => void;
 };
 
 export function GuessingPhase({
   croppedPreviewUrl,
+  timerSeconds,
   onReveal,
   onTimeUp,
 }: GuessingPhaseProps) {
-  const { secondsLeft, progress } = useRoundTimer({ onTimeUp });
+  const { secondsLeft, progress } = useRoundTimer({
+    totalSeconds: timerSeconds,
+    onTimeUp,
+  });
 
   return (
     <motion.div
@@ -32,6 +33,10 @@ export function GuessingPhase({
       animate={{ opacity: 1 }}
       className="flex w-full max-w-3xl flex-col items-center"
     >
+      <h2 className="mb-6 font-display text-5xl text-gold sm:text-6xl">
+        Czyj to ryj?
+      </h2>
+
       <div
         className="relative shrink-0"
         style={{ width: RING_SIZE, height: RING_SIZE }}
@@ -66,7 +71,6 @@ export function GuessingPhase({
       >
         Kliknij w detal, aby ujawnić zdjęcie
       </motion.p>
-      <TimerRingLabel />
     </motion.div>
   );
 }

@@ -12,6 +12,7 @@ import { PrepareTabs } from "@/components/prepare/PrepareTabs";
 import { PrepareToolbar } from "@/components/prepare/PrepareToolbar";
 import { ScoreSessionPanel } from "@/components/prepare/ScoreSessionPanel";
 import { ShowOrderEditor } from "@/components/prepare/ShowOrderEditor";
+import { TimerSettingsEditor } from "@/components/prepare/TimerSettingsEditor";
 import { TriviaRoundList } from "@/components/prepare/trivia/TriviaRoundList";
 import { useTournament } from "@/context/TournamentContext";
 
@@ -53,6 +54,7 @@ export default function PreparePage() {
       >
         <PrepareToolbar />
         <ShowOrderEditor />
+        <TimerSettingsEditor />
 
         <PrepareTabs>
           {(tab) => {

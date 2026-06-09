@@ -51,6 +51,8 @@ export type TriviaRound = {
   correctAnswer: string;
 };
 
+export type TimerSettings = Record<CompetitionId, number>;
+
 export type TournamentState = {
   version: 2;
   id: string;
@@ -61,6 +63,7 @@ export type TournamentState = {
   harmonyRounds: HarmonyRound[];
   triviaRounds: TriviaRound[];
   showOrder: CompetitionId[];
+  timerSeconds: TimerSettings;
 };
 
 export type ShowRound =
@@ -111,6 +114,7 @@ export type ExportedTournament = {
   harmonyRounds: ExportedHarmonyRound[];
   triviaRounds: ExportedTriviaRound[];
   showOrder: CompetitionId[];
+  timerSeconds?: TimerSettings;
 };
 
 /** @deprecated v1 shape kept for migration */
@@ -132,6 +136,15 @@ export const DEFAULT_SHOW_ORDER: CompetitionId[] = [
   "harmony",
   "trivia",
 ];
+
+export const DEFAULT_TIMER_SECONDS: TimerSettings = {
+  face: 10,
+  harmony: 30,
+  trivia: 45,
+};
+
+export const MIN_TIMER_SECONDS = 5;
+export const MAX_TIMER_SECONDS = 180;
 
 export const COMPETITION_LABELS: Record<CompetitionId, string> = {
   face: "Czyj to ryj?",
@@ -180,6 +193,7 @@ export function createEmptyTournament(name = "Nowy teleturniej"): TournamentStat
     harmonyRounds: [],
     triviaRounds: [],
     showOrder: [...DEFAULT_SHOW_ORDER],
+    timerSeconds: { ...DEFAULT_TIMER_SECONDS },
   };
 }
 
@@ -282,6 +296,10 @@ export function migrateTournament(
       harmonyRounds: data.harmonyRounds ?? [],
       triviaRounds: data.triviaRounds ?? [],
       showOrder: data.showOrder ?? [...DEFAULT_SHOW_ORDER],
+      timerSeconds: {
+        ...DEFAULT_TIMER_SECONDS,
+        ...data.timerSeconds,
+      },
     };
   }
 
@@ -297,6 +315,7 @@ export function migrateTournament(
       harmonyRounds: [],
       triviaRounds: [],
       showOrder: [...DEFAULT_SHOW_ORDER],
+      timerSeconds: { ...DEFAULT_TIMER_SECONDS },
     };
   }
 

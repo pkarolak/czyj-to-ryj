@@ -3,7 +3,9 @@ import { createRoundFromBlob } from "@/lib/images/createRoundFromFile";
 import { blobToDataUrl, normalizeImageBlob } from "@/lib/images/fileToBlob";
 import {
   DEFAULT_SHOW_ORDER,
+  DEFAULT_TIMER_SECONDS,
   MAX_IMPORT_SIZE_BYTES,
+  type TimerSettings,
   TOURNAMENT_VERSION,
   type CompetitionId,
   type ExportedFaceRound,
@@ -106,7 +108,19 @@ function isExportedTournamentV2(value: unknown): value is ExportedTournament {
     return false;
   if (!Array.isArray(v.triviaRounds) || !v.triviaRounds.every(isExportedTriviaRound))
     return false;
-  return isShowOrder(v.showOrder);
+  if (!isShowOrder(v.showOrder)) return false;
+  if (v.timerSeconds === undefined) return true;
+  return isTimerSettings(v.timerSeconds);
+}
+
+function isTimerSettings(value: unknown): value is TimerSettings {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.face === "number" &&
+    typeof v.harmony === "number" &&
+    typeof v.trivia === "number"
+  );
 }
 
 function isExportedTournamentV1(value: unknown): value is ExportedTournamentV1 {
@@ -212,6 +226,10 @@ export async function parseTournamentFile(
       harmonyRounds: parsed.harmonyRounds.map(importHarmonyRound),
       triviaRounds,
       showOrder: parsed.showOrder,
+      timerSeconds: {
+        ...DEFAULT_TIMER_SECONDS,
+        ...parsed.timerSeconds,
+      },
     };
   }
 
@@ -227,6 +245,7 @@ export async function parseTournamentFile(
       harmonyRounds: [],
       triviaRounds: [],
       showOrder: [...DEFAULT_SHOW_ORDER],
+      timerSeconds: { ...DEFAULT_TIMER_SECONDS },
     };
   }
 
