@@ -1,23 +1,38 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   resizeTeamPhotoToDataUrl,
   TEAM_PHOTO_MAX_INPUT_BYTES,
 } from "@/lib/images/resizeTeamPhoto";
-import { TEAM_COLORS, type Team } from "@/lib/types/scoreRoom";
+import { TEAM_COLORS, type Team, type TeamWithId } from "@/lib/types/scoreRoom";
 
 type TeamFormProps = {
-  onAdd: (team: Team) => Promise<void>;
+  onSubmit: (team: Team) => Promise<void>;
   teamCount?: number;
+  initialTeam?: TeamWithId;
+  onCancel?: () => void;
+  onDelete?: () => void;
 };
 
-export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
-  const [name, setName] = useState("");
-  const [captain, setCaptain] = useState("");
-  const [color, setColor] = useState(TEAM_COLORS[teamCount % TEAM_COLORS.length]);
-  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+export function TeamForm({
+  onSubmit,
+  teamCount = 0,
+  initialTeam,
+  onCancel,
+  onDelete,
+}: TeamFormProps) {
+  const isEditing = Boolean(initialTeam);
+  const [name, setName] = useState(initialTeam?.name ?? "");
+  const [captain, setCaptain] = useState(initialTeam?.captain ?? "");
+  const [color, setColor] = useState(
+    initialTeam?.color ?? TEAM_COLORS[teamCount % TEAM_COLORS.length],
+  );
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(
+    initialTeam?.photoDataUrl ?? null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -45,19 +60,22 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
 
     setIsSubmitting(true);
     try {
-      await onAdd({
+      await onSubmit({
         name: name.trim(),
         captain: captain.trim(),
-        score: 0,
+        score: initialTeam?.score ?? 0,
         color,
         photoDataUrl,
       });
-      setName("");
-      setCaptain("");
-      setPhotoDataUrl(null);
-      setPhotoError(null);
-      setColor(TEAM_COLORS[(teamCount + 1) % TEAM_COLORS.length]);
-      if (fileRef.current) fileRef.current.value = "";
+
+      if (!isEditing) {
+        setName("");
+        setCaptain("");
+        setPhotoDataUrl(null);
+        setPhotoError(null);
+        setColor(TEAM_COLORS[(teamCount + 1) % TEAM_COLORS.length]);
+        if (fileRef.current) fileRef.current.value = "";
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +88,20 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
       onSubmit={handleSubmit}
       className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
     >
-      <h3 className="mb-4 font-display text-xl text-gold">Dodaj drużynę</h3>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="font-display text-xl text-gold">
+          {isEditing ? "Edytuj drużynę" : "Dodaj drużynę"}
+        </h3>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-sm text-cream/40 underline"
+          >
+            Anuluj
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col gap-3">
         <input
@@ -128,7 +159,7 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
                 }}
                 className="text-xs text-cream/40 underline"
               >
-                Usuń
+                Usuń zdjęcie
               </button>
             )}
             <input
@@ -156,8 +187,26 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
           disabled={!name.trim() || !captain.trim() || isSubmitting}
           className="w-full"
         >
-          {isSubmitting ? "Dodawanie…" : "Dodaj drużynę"}
+          {isSubmitting
+            ? isEditing
+              ? "Zapisywanie…"
+              : "Dodawanie…"
+            : isEditing
+              ? "Zapisz zmiany"
+              : "Dodaj drużynę"}
         </Button>
+
+        {onDelete && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full text-red-400 hover:text-red-300"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Usuń drużynę
+          </Button>
+        )}
       </div>
     </form>
   );

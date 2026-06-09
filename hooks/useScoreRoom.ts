@@ -6,6 +6,7 @@ import {
   adjustTeamScore,
   addTeam,
   removeTeam,
+  updateTeam,
   scoreRound,
   setCurrentRound,
   setPointsPerCorrect,
@@ -22,6 +23,7 @@ type UseScoreRoomResult = {
   adjustScore: (teamId: string, delta: number) => Promise<void>;
   addTeamToRoom: (team: Team) => Promise<string>;
   removeTeamFromRoom: (teamId: string) => Promise<void>;
+  updateTeamInRoom: (teamId: string, team: Team) => Promise<void>;
   setShowScores: (show: boolean) => Promise<void>;
   recordRoundScore: (
     roundId: string,
@@ -88,6 +90,14 @@ export function useScoreRoom(roomCode: string | null): UseScoreRoomResult {
     [roomCode],
   );
 
+  const updateTeamInRoom = useCallback(
+    async (teamId: string, team: Team) => {
+      if (!roomCode) return;
+      await updateTeam(roomCode, teamId, team);
+    },
+    [roomCode],
+  );
+
   const setShowScores = useCallback(
     async (show: boolean) => {
       if (!roomCode) return;
@@ -131,6 +141,7 @@ export function useScoreRoom(roomCode: string | null): UseScoreRoomResult {
     adjustScore,
     addTeamToRoom,
     removeTeamFromRoom,
+    updateTeamInRoom,
     setShowScores,
     recordRoundScore,
     updateCurrentRound,

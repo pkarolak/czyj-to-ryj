@@ -134,7 +134,7 @@ export function ScoreSessionPanel() {
           {room && (
             <TeamForm
               teamCount={teamCount}
-              onAdd={async (team) => {
+              onSubmit={async (team) => {
                 await addTeamToRoom(team);
               }}
             />

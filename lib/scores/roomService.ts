@@ -99,6 +99,16 @@ export async function addTeam(
   return teamId;
 }
 
+export async function updateTeam(
+  roomCode: string,
+  teamId: string,
+  team: Team,
+): Promise<void> {
+  await update(roomRef(roomCode), {
+    [`teams/${teamId}`]: team,
+  });
+}
+
 export async function removeTeam(
   roomCode: string,
   teamId: string,

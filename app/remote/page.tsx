@@ -7,6 +7,7 @@ import { Suspense, useEffect, useState } from "react";
 import { FirebaseNotice } from "@/components/scores/FirebaseNotice";
 import { RoomCodeInput } from "@/components/scores/RoomCodeInput";
 import { ScoreControlCard } from "@/components/scores/ScoreControlCard";
+import { TeamEditSheet } from "@/components/scores/TeamEditSheet";
 import { TeamForm } from "@/components/scores/TeamForm";
 import { Button } from "@/components/ui/Button";
 import { useScoreRoom } from "@/hooks/useScoreRoom";
@@ -22,6 +23,7 @@ function RemoteContent() {
   );
   const [joinError, setJoinError] = useState<string | null>(null);
   const [showAddTeam, setShowAddTeam] = useState(false);
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
 
   const {
     room,
@@ -31,6 +33,7 @@ function RemoteContent() {
     adjustScore,
     addTeamToRoom,
     removeTeamFromRoom,
+    updateTeamInRoom,
     setShowScores,
   } = useScoreRoom(roomCode);
 
@@ -94,6 +97,9 @@ function RemoteContent() {
   }
 
   const teams = sortTeamsByScore(room.teams);
+  const editingTeam = editingTeamId
+    ? teams.find((team) => team.id === editingTeamId)
+    : null;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 py-6 pb-28">
@@ -130,15 +136,7 @@ function RemoteContent() {
                 key={team.id}
                 team={team}
                 onAdjust={(delta) => adjustScore(team.id, delta)}
-                onRemove={() => {
-                  if (
-                    confirm(
-                      `Usunąć drużynę „${team.name}"? Tej operacji nie można cofnąć.`,
-                    )
-                  ) {
-                    void removeTeamFromRoom(team.id);
-                  }
-                }}
+                onEdit={() => setEditingTeamId(team.id)}
               />
             ))}
           </div>
@@ -165,7 +163,7 @@ function RemoteContent() {
           <div className="mt-3">
             <TeamForm
               teamCount={teams.length}
-              onAdd={async (team) => {
+              onSubmit={async (team) => {
                 await addTeamToRoom(team);
                 setShowAddTeam(false);
               }}
@@ -173,6 +171,27 @@ function RemoteContent() {
           </div>
         )}
       </div>
+
+      {editingTeam && (
+        <TeamEditSheet
+          team={editingTeam}
+          onClose={() => setEditingTeamId(null)}
+          onSave={async (team) => {
+            await updateTeamInRoom(editingTeam.id, team);
+            setEditingTeamId(null);
+          }}
+          onDelete={() => {
+            if (
+              confirm(
+                `Usunąć drużynę „${editingTeam.name}"? Tej operacji nie można cofnąć.`,
+              )
+            ) {
+              void removeTeamFromRoom(editingTeam.id);
+              setEditingTeamId(null);
+            }
+          }}
+        />
+      )}
 
       <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink/95 p-4 backdrop-blur">
         <Button
