@@ -27,3 +27,11 @@ export function roundNumberInSection(
   }
   return count;
 }
+
+export function totalRoundsInSection(
+  queue: ShowRound[],
+  index: number,
+): number {
+  const section = queue[index]?.sectionLabel;
+  return queue.filter((round) => round.sectionLabel === section).length;
+}

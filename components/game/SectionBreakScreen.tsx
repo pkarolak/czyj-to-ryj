@@ -30,7 +30,7 @@ export function SectionBreakScreen({
       </div>
       <div className="border-t border-white/10 p-6 text-center">
         <Button size="lg" onClick={onContinue} className="px-12">
-          Kontynuuj show
+          Kolejna runda
         </Button>
       </div>
     </motion.div>

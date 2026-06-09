@@ -25,6 +25,7 @@ import {
   isFirstRoundOfSection,
   isLastRoundOfSection,
   roundNumberInSection,
+  totalRoundsInSection,
 } from "@/lib/show/sectionUtils";
 import {
   buildShowQueue,
@@ -53,6 +54,9 @@ export function GameScreen() {
   const isLastRound = queueIndex >= queue.length - 1;
   const roundInSection = current
     ? roundNumberInSection(queue, queueIndex)
+    : 0;
+  const roundsInSection = current
+    ? totalRoundsInSection(queue, queueIndex)
     : 0;
 
   const timerSeconds = current
@@ -206,7 +210,7 @@ export function GameScreen() {
           </h2>
           <p className="text-cream/50">Brak drużyn w sesji punktowej.</p>
           <Button size="lg" onClick={handleSectionBreakContinue}>
-            Kontynuuj show
+            Kolejna runda
           </Button>
         </div>
       )}
@@ -220,12 +224,9 @@ export function GameScreen() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex-1 text-center">
-            <p className="text-xs uppercase tracking-[0.25em] text-gold/60">
-              {tournament.name}
-            </p>
-            <p className="text-xs text-cream/40">{current.sectionLabel}</p>
-            <p className="font-display text-lg text-cream/80">
-              Runda {roundInSection} · {queueIndex + 1}/{queue.length}
+            <p className="font-display text-lg text-cream/80 sm:text-xl">
+              Runda {roundInSection}/{roundsInSection} · Pytanie{" "}
+              {queueIndex + 1}/{queue.length}
             </p>
           </div>
           {phase === "revealed" ? (
