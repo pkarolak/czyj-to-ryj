@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 
-export type PrepareTabId = "face" | "harmony" | "trivia" | "teams";
+export type PrepareTabId = "general" | "face" | "harmony" | "trivia" | "teams";
 
 type Tab = {
   id: PrepareTabId;
@@ -10,6 +10,7 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
+  { id: "general", label: "Ogólne" },
   { id: "face", label: "Czyj to ryj?" },
   { id: "harmony", label: "Jaka to harmonia?" },
   { id: "trivia", label: "Taki jesteś mądry?" },
@@ -21,7 +22,7 @@ type PrepareTabsProps = {
 };
 
 export function PrepareTabs({ children }: PrepareTabsProps) {
-  const [activeTab, setActiveTab] = useState<PrepareTabId>("face");
+  const [activeTab, setActiveTab] = useState<PrepareTabId>("general");
 
   return (
     <div>

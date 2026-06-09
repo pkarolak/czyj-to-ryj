@@ -117,7 +117,7 @@ export function HarmonyRoundEditor({ initial, onDone }: HarmonyRoundEditorProps)
           />
           <p className="mt-1 text-xs text-cream/40">
             Wpisz nuty oddzielone przecinkiem lub spacją. Kliknij klawisz poniżej,
-            aby dodać.
+            aby usłyszeć i dodać nutę.
           </p>
         </div>
 

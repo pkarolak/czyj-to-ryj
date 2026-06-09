@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Trash2, User } from "lucide-react";
 import { CropPreview } from "@/components/crop/CropPreview";
+import { PhotoUpload } from "@/components/prepare/PhotoUpload";
 import { useTournament } from "@/context/TournamentContext";
 import { isRoundAnnotated, isRoundCropped } from "@/lib/types/tournament";
 
@@ -19,8 +20,6 @@ function roundStatus(round: ReturnType<typeof useTournament>["tournament"]["face
 
 export function PhotoList({ selectedId, onSelect }: PhotoListProps) {
   const { tournament, removeFaceRound } = useTournament();
-
-  if (!tournament.faceRounds.length) return null;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -83,6 +82,7 @@ export function PhotoList({ selectedId, onSelect }: PhotoListProps) {
           );
         })}
       </AnimatePresence>
+      <PhotoUpload />
     </div>
   );
 }

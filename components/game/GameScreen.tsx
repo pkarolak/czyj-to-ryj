@@ -24,7 +24,9 @@ import { getStoredRoomCode, setGamePhase } from "@/lib/scores/roomService";
 import {
   isFirstRoundOfSection,
   isLastRoundOfSection,
+  competitionNumberInShow,
   roundNumberInSection,
+  totalCompetitionsInShow,
   totalRoundsInSection,
 } from "@/lib/show/sectionUtils";
 import {
@@ -52,10 +54,14 @@ export function GameScreen() {
   const queue = useMemo(() => buildShowQueue(tournament), [tournament]);
   const current = queue[queueIndex] ?? null;
   const isLastRound = queueIndex >= queue.length - 1;
-  const roundInSection = current
+  const competitionNumber = current
+    ? competitionNumberInShow(queue, queueIndex)
+    : 0;
+  const totalCompetitions = totalCompetitionsInShow(queue);
+  const questionInCompetition = current
     ? roundNumberInSection(queue, queueIndex)
     : 0;
-  const roundsInSection = current
+  const questionsInCompetition = current
     ? totalRoundsInSection(queue, queueIndex)
     : 0;
 
@@ -149,7 +155,7 @@ export function GameScreen() {
           Przygotuj przynajmniej jedną gotową rundę w dowolnej sekcji teleturnieju.
         </p>
         <Link href="/prepare">
-          <Button variant="secondary">Tryb prowadzącego</Button>
+          <Button variant="secondary">Konfiguruj rozgrywkę</Button>
         </Link>
       </div>
     );
@@ -225,8 +231,8 @@ export function GameScreen() {
           </Link>
           <div className="flex-1 text-center">
             <p className="font-display text-lg text-cream/80 sm:text-xl">
-              Runda {roundInSection}/{roundsInSection} · Pytanie{" "}
-              {queueIndex + 1}/{queue.length}
+              Runda {competitionNumber}/{totalCompetitions} · Pytanie{" "}
+              {questionInCompetition}/{questionsInCompetition}
             </p>
           </div>
           {phase === "revealed" ? (
@@ -275,7 +281,7 @@ export function GameScreen() {
                 {current.sectionLabel}
               </p>
               <h1 className="mt-2 font-display text-7xl text-gold sm:text-8xl">
-                RUNDA {roundInSection}
+                PYTANIE {questionInCompetition}
               </h1>
               <Button
                 size="lg"

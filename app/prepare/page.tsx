@@ -7,7 +7,6 @@ import { useState } from "react";
 import { HarmonyRoundList } from "@/components/prepare/harmony/HarmonyRoundList";
 import { PhotoEditor } from "@/components/prepare/PhotoEditor";
 import { PhotoList } from "@/components/prepare/PhotoList";
-import { PhotoUpload } from "@/components/prepare/PhotoUpload";
 import { PrepareTabs } from "@/components/prepare/PrepareTabs";
 import { PrepareToolbar } from "@/components/prepare/PrepareToolbar";
 import { ScoreSessionPanel } from "@/components/prepare/ScoreSessionPanel";
@@ -39,7 +38,7 @@ export default function PreparePage() {
         </Link>
         <div>
           <h1 className="font-display text-3xl text-gold sm:text-4xl">
-            Tryb prowadzącego
+            Konfiguruj rozgrywkę
           </h1>
           <p className="text-sm text-cream/50">
             Przygotuj trzy konkurencje, ustal kolejność show i zarządzaj zespołami
@@ -53,11 +52,17 @@ export default function PreparePage() {
         className="flex flex-col gap-8"
       >
         <PrepareToolbar />
-        <ShowOrderEditor />
-        <TimerSettingsEditor />
 
         <PrepareTabs>
           {(tab) => {
+            if (tab === "general") {
+              return (
+                <div className="flex flex-col gap-6">
+                  <ShowOrderEditor />
+                  <TimerSettingsEditor />
+                </div>
+              );
+            }
             if (tab === "face") {
               return selectedFaceId ? (
                 <PhotoEditor
@@ -65,13 +70,10 @@ export default function PreparePage() {
                   onDone={() => setSelectedFaceId(null)}
                 />
               ) : (
-                <>
-                  <PhotoUpload />
-                  <PhotoList
-                    selectedId={selectedFaceId}
-                    onSelect={setSelectedFaceId}
-                  />
-                </>
+                <PhotoList
+                  selectedId={selectedFaceId}
+                  onSelect={setSelectedFaceId}
+                />
               );
             }
             if (tab === "harmony") return <HarmonyRoundList />;

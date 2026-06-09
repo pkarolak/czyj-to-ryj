@@ -1,7 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TimerRing } from "@/components/game/TimerRing";
+import {
+  isTimerUrgent,
+  TIMER_URGENT_THRESHOLD,
+  TimerRing,
+} from "@/components/game/TimerRing";
 
 type GameCountdownProps = {
   secondsLeft: number;
@@ -14,16 +18,16 @@ export function GameCountdown({
   secondsLeft,
   progress,
   size = 120,
-  urgentBelow = 5,
+  urgentBelow = TIMER_URGENT_THRESHOLD,
 }: GameCountdownProps) {
-  const isUrgent = secondsLeft <= urgentBelow && secondsLeft > 0;
+  const isUrgent = isTimerUrgent(secondsLeft, urgentBelow);
 
   return (
     <div
       className="relative shrink-0"
       style={{ width: size, height: size }}
     >
-      <TimerRing progress={progress} size={size} />
+      <TimerRing progress={progress} size={size} urgent={isUrgent} />
       <motion.p
         animate={isUrgent ? { scale: [1, 1.08, 1] } : { scale: 1 }}
         transition={{ repeat: isUrgent ? Infinity : 0, duration: 0.5 }}

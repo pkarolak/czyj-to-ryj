@@ -1,7 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TimerCountdown, TimerRing } from "@/components/game/TimerRing";
+import {
+  isTimerUrgent,
+  TimerCountdown,
+  TimerRing,
+} from "@/components/game/TimerRing";
 import { useRoundTimer } from "@/components/game/useRoundTimer";
 import { REVEAL_LAYOUT_ID, REVEAL_TRANSITION } from "@/lib/game/constants";
 
@@ -26,6 +30,7 @@ export function GuessingPhase({
     totalSeconds: timerSeconds,
     onTimeUp,
   });
+  const isUrgent = isTimerUrgent(secondsLeft);
 
   return (
     <motion.div
@@ -41,7 +46,7 @@ export function GuessingPhase({
         className="relative shrink-0"
         style={{ width: RING_SIZE, height: RING_SIZE }}
       >
-        <TimerRing progress={progress} size={RING_SIZE} />
+        <TimerRing progress={progress} size={RING_SIZE} urgent={isUrgent} />
         <motion.button
           type="button"
           layoutId={REVEAL_LAYOUT_ID}

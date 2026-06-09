@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ImagePlus, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { useTournament } from "@/context/TournamentContext";
@@ -19,6 +18,7 @@ export function PhotoUpload() {
         await addPhotos(Array.from(files));
       } finally {
         setIsUploading(false);
+        if (inputRef.current) inputRef.current.value = "";
       }
     },
     [addPhotos],
@@ -34,9 +34,7 @@ export function PhotoUpload() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -44,7 +42,7 @@ export function PhotoUpload() {
       onDragLeave={() => setIsDragging(false)}
       onDrop={onDrop}
       onClick={() => inputRef.current?.click()}
-      className={`flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-8 py-12 transition-colors ${
+      className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-3 transition-colors ${
         isDragging
           ? "border-gold bg-gold/10"
           : "border-white/15 bg-white/[0.02] hover:border-gold/50 hover:bg-white/[0.04]"
@@ -58,21 +56,17 @@ export function PhotoUpload() {
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/15 text-gold">
-        {isDragging ? (
-          <Upload className="h-8 w-8" />
+      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-lg bg-gold/10 text-gold">
+        {isDragging || isUploading ? (
+          <Upload className="h-7 w-7" />
         ) : (
-          <ImagePlus className="h-8 w-8" />
+          <ImagePlus className="h-7 w-7" />
         )}
       </div>
-      <div className="text-center">
-        <p className="font-display text-xl text-cream">
-          {isUploading ? "Wczytywanie zdjęć…" : "Przeciągnij zdjęcia lub kliknij"}
-        </p>
-        <p className="mt-1 text-sm text-cream/50">
-          JPG, PNG, WEBP — wiele plików naraz
-        </p>
-      </div>
-    </motion.div>
+      <span className="text-center text-xs text-cream/60">
+        {isUploading ? "Wczytywanie…" : "Dodaj zdjęcia"}
+      </span>
+      <span className="text-center text-xs text-cream/40">Przeciągnij lub kliknij</span>
+    </div>
   );
 }
