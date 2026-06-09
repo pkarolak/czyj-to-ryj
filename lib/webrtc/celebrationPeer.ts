@@ -1,3 +1,4 @@
+import { acquireCameraStream, getCameraErrorMessage } from "@/lib/webrtc/camera";
 import {
   pushIceCandidate,
   subscribeAnswer,
@@ -131,17 +132,19 @@ export async function startPublisherSession(
   roomCode: string,
   onStatus: (status: CelebrationStreamStatus) => void,
   onError: (message: string) => void,
+  existingStream?: MediaStream,
 ): Promise<CelebrationPeerSession> {
   let localStream: MediaStream;
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false,
-    });
-  } catch {
-    onStatus("error");
-    onError("Brak dostępu do kamery. Zezwól na kamerę w ustawieniach przeglądarki.");
-    throw new Error("camera_denied");
+  if (existingStream) {
+    localStream = existingStream;
+  } else {
+    try {
+      localStream = await acquireCameraStream();
+    } catch (error) {
+      onStatus("error");
+      onError(getCameraErrorMessage(error));
+      throw new Error("camera_denied");
+    }
   }
 
   const pc = createCelebrationPeerConnection();

@@ -46,7 +46,7 @@ export function CelebrationCameraPanel({
         </div>
       </div>
 
-      {isPublishing && localStream && (
+      {localStream && (
         <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
           <video
             ref={previewRef}

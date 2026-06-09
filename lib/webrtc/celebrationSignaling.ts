@@ -3,6 +3,7 @@ import {
   onValue,
   push,
   ref,
+  remove,
   set,
   type Unsubscribe,
 } from "firebase/database";
@@ -105,6 +106,25 @@ export function subscribeAnswer(
     if (!value?.sdp || !value.type) return;
     onAnswer({ type: value.type, sdp: value.sdp });
   });
+}
+
+/** Przed nadawaniem — czyści starą odpowiedź i ICE, zostawia offer do nadpisania. */
+export async function resetPublisherSignaling(roomCode: string): Promise<void> {
+  if (!isValidRoomCode(roomCode)) return;
+  await Promise.all([
+    remove(answerRef(roomCode)),
+    remove(callerIceRef(roomCode)),
+    remove(calleeIceRef(roomCode)),
+  ]);
+}
+
+/** Przed odbiorem — czyści starą odpowiedź i ICE odbiorcy, nie kasuje offeru telefonu. */
+export async function resetViewerSignaling(roomCode: string): Promise<void> {
+  if (!isValidRoomCode(roomCode)) return;
+  await Promise.all([
+    remove(answerRef(roomCode)),
+    remove(calleeIceRef(roomCode)),
+  ]);
 }
 
 export function subscribeRemoteIce(

@@ -8,12 +8,21 @@ import {
   setCelebrationActive,
 } from "@/lib/scores/roomService";
 import {
+  acquireCameraStream,
+  getCameraErrorMessage,
+} from "@/lib/webrtc/camera";
+import {
   closeCelebrationPeerSession,
   startPublisherSession,
   startViewerSession,
+  stopMediaStream,
   type CelebrationPeerSession,
   type CelebrationStreamStatus,
 } from "@/lib/webrtc/celebrationPeer";
+import {
+  resetPublisherSignaling,
+  resetViewerSignaling,
+} from "@/lib/webrtc/celebrationSignaling";
 
 export type UseCelebrationViewerResult = {
   status: CelebrationStreamStatus;
@@ -58,7 +67,7 @@ export function useCelebrationViewer(
     setError(null);
     setStatus("waiting");
 
-    await clearCelebrationSignaling(roomCode);
+    await resetViewerSignaling(roomCode);
     await requestCelebration(roomCode);
 
     try {
@@ -140,12 +149,24 @@ export function useCelebrationPublisher(
     if (sessionRef.current) return;
 
     setError(null);
+
+    // iOS wymaga getUserMedia bezpośrednio z gestu użytkownika — przed await do Firebase.
+    let stream: MediaStream;
+    try {
+      stream = await acquireCameraStream();
+    } catch (err) {
+      setError(getCameraErrorMessage(err));
+      setStatus("error");
+      return;
+    }
+
+    setLocalStream(stream);
     setIsPublishing(true);
 
-    await clearCelebrationSignaling(roomCode);
-    await setCelebrationActive(roomCode, true);
-
     try {
+      await resetPublisherSignaling(roomCode);
+      await setCelebrationActive(roomCode, true);
+
       const session = await startPublisherSession(
         roomCode,
         setStatus,
@@ -153,10 +174,12 @@ export function useCelebrationPublisher(
           setError(message);
           setStatus("error");
         },
+        stream,
       );
       sessionRef.current = session;
-      setLocalStream(session.localStream);
     } catch {
+      stopMediaStream(stream);
+      setLocalStream(null);
       setIsPublishing(false);
       await clearCelebrationState(roomCode);
     }
