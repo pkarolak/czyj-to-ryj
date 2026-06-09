@@ -16,7 +16,16 @@ type Particle = {
 
 const COLORS = ["#f5c542", "#e85d75", "#4ecdc4", "#a78bfa", "#fb923c", "#34d399"];
 
-export function Confetti() {
+type ConfettiProps = {
+  /** viewport = pełny ekran; parent = wypełnia kontener (np. overlay) */
+  scope?: "viewport" | "parent";
+  className?: string;
+};
+
+export function Confetti({
+  scope = "viewport",
+  className,
+}: ConfettiProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -29,11 +38,22 @@ export function Confetti() {
     let raf = 0;
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (scope === "parent" && canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      } else {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
     };
     resize();
     window.addEventListener("resize", resize);
+
+    let resizeObserver: ResizeObserver | undefined;
+    if (scope === "parent" && canvas.parentElement) {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
 
     const particles: Particle[] = [];
     const spawn = (side: "left" | "right", count: number) => {
@@ -92,13 +112,19 @@ export function Confetti() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      resizeObserver?.disconnect();
     };
-  }, []);
+  }, [scope]);
+
+  const defaultClassName =
+    scope === "parent"
+      ? "pointer-events-none absolute inset-0 z-0"
+      : "pointer-events-none fixed inset-0 z-40";
 
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-40"
+      className={className ?? defaultClassName}
       aria-hidden
     />
   );

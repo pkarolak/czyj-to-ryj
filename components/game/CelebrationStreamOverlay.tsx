@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { Confetti } from "@/components/game/Confetti";
 import { Button } from "@/components/ui/Button";
 import type { CelebrationStreamStatus } from "@/lib/webrtc/celebrationPeer";
 
@@ -45,19 +46,21 @@ export function CelebrationStreamOverlay({
   const showVideo = status === "connected" && remoteStream;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/85 p-4 backdrop-blur-sm">
+      <Confetti scope="parent" />
+
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-ink/80 text-cream/80 hover:text-cream"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-ink/80 text-cream/80 hover:text-cream"
         aria-label="Zamknij stream"
       >
         <X className="h-5 w-5" />
       </button>
 
-      <div className="flex w-full max-w-5xl flex-col items-center gap-4">
+      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-4">
         <p className="font-display text-2xl text-gold sm:text-3xl">
-          Jak oni świętują
+          Jak oni świętują!
         </p>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gold/30 bg-ink">

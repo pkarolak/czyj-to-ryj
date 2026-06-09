@@ -42,7 +42,7 @@ export function FinalCelebration({ teams, roomCode }: FinalCelebrationProps) {
             onClick={() => void openStream()}
           >
             <Video className="h-4 w-4" />
-            Jak oni świętują
+            Jak oni świętują!
           </Button>
         </div>
       )}
