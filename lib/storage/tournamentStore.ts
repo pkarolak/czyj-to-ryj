@@ -1,7 +1,13 @@
 import localforage from "localforage";
 import { createRoundFromBlob } from "@/lib/images/createRoundFromFile";
 import { blobToDataUrl, isValidImageBlob, normalizeImageBlob } from "@/lib/images/fileToBlob";
-import type { RoundEntry, TournamentState } from "@/lib/types/tournament";
+import {
+  migrateTournament,
+  type LegacyTournamentState,
+  type RoundEntry,
+  type TournamentState,
+  type TriviaRound,
+} from "@/lib/types/tournament";
 
 const STORE_NAME = "czyj-to-ryj";
 const TOURNAMENT_KEY = "current-tournament";
@@ -64,20 +70,49 @@ async function hydrateRound(round: RoundEntry): Promise<RoundEntry | null> {
   }
 }
 
-async function normalizeTournament(
-  data: TournamentState | null,
-): Promise<TournamentState | null> {
-  if (!data || data.version !== 1) return null;
+async function hydrateTriviaRound(round: TriviaRound): Promise<TriviaRound> {
+  if (!round.imageBlob || !isValidImageBlob(round.imageBlob)) {
+    return { ...round, imageBlob: null, imagePreviewUrl: null };
+  }
 
-  const rounds = (
-    await Promise.all(data.rounds.map(hydrateRound))
+  try {
+    const preview =
+      round.imagePreviewUrl?.startsWith("data:image/")
+        ? round.imagePreviewUrl
+        : await blobToDataUrl(
+            await normalizeImageBlob(round.imageBlob, `trivia-${round.id}.jpeg`),
+          );
+    return { ...round, imagePreviewUrl: preview };
+  } catch {
+    return { ...round, imageBlob: null, imagePreviewUrl: null };
+  }
+}
+
+async function normalizeTournament(
+  data: TournamentState | LegacyTournamentState | null,
+): Promise<TournamentState | null> {
+  const migrated = migrateTournament(data);
+  if (!migrated) return null;
+
+  const faceRounds = (
+    await Promise.all(migrated.faceRounds.map(hydrateRound))
   ).filter((r): r is RoundEntry => r !== null);
 
-  return { ...data, rounds };
+  const triviaRounds = await Promise.all(
+    migrated.triviaRounds.map(hydrateTriviaRound),
+  );
+
+  return {
+    ...migrated,
+    faceRounds,
+    triviaRounds,
+  };
 }
 
 export async function loadTournament(): Promise<TournamentState | null> {
-  const data = await store.getItem<TournamentState>(TOURNAMENT_KEY);
+  const data = await store.getItem<TournamentState | LegacyTournamentState>(
+    TOURNAMENT_KEY,
+  );
   return normalizeTournament(data);
 }
 

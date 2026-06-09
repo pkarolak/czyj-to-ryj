@@ -21,8 +21,9 @@ export default function HomePage() {
           Czyj to ryj?
         </h1>
         <p className="mt-6 text-lg text-cream/60">
-          Zgadnij tożsamość członków chóru na podstawie detalu ze starego zdjęcia.
-          Przygotuj rundę jako prowadzący, a potem rozpocznij grę na żywo.
+          Trzy konkurencje w jednym show: zgadnij twarz na zdjęciu, rozpoznaj
+          utwór po dźwiękach i odpowiedz na pytania trivia. Przygotuj rundę jako
+          prowadzący, a potem rozpocznij grę na żywo.
         </p>
 
         <div className="mt-12 flex w-full flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-center">

@@ -16,8 +16,8 @@ type EditorStep = "crop" | "annotate";
 
 export function PhotoEditor({ roundId, onDone }: PhotoEditorProps) {
   const { tournament, updateRoundCrop } = useTournament();
-  const roundIndex = tournament.rounds.findIndex((r) => r.id === roundId);
-  const round = roundIndex >= 0 ? tournament.rounds[roundIndex] : null;
+  const roundIndex = tournament.faceRounds.findIndex((r) => r.id === roundId);
+  const round = roundIndex >= 0 ? tournament.faceRounds[roundIndex] : null;
 
   const [step, setStep] = useState<EditorStep>(() =>
     round && isRoundCropped(round) ? "annotate" : "crop",

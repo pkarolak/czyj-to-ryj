@@ -11,21 +11,21 @@ type PhotoListProps = {
   onSelect: (id: string) => void;
 };
 
-function roundStatus(round: ReturnType<typeof useTournament>["tournament"]["rounds"][0]) {
+function roundStatus(round: ReturnType<typeof useTournament>["tournament"]["faceRounds"][0]) {
   if (!isRoundCropped(round)) return { label: "Do kadrowania", color: "amber" as const };
   if (!isRoundAnnotated(round)) return { label: "Oznacz postać", color: "sky" as const };
   return { label: "Gotowe", color: "emerald" as const };
 }
 
 export function PhotoList({ selectedId, onSelect }: PhotoListProps) {
-  const { tournament, removeRound } = useTournament();
+  const { tournament, removeFaceRound } = useTournament();
 
-  if (!tournament.rounds.length) return null;
+  if (!tournament.faceRounds.length) return null;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       <AnimatePresence mode="popLayout">
-        {tournament.rounds.map((round, index) => {
+        {tournament.faceRounds.map((round, index) => {
           const status = roundStatus(round);
           const isSelected = selectedId === round.id;
 
@@ -73,7 +73,7 @@ export function PhotoList({ selectedId, onSelect }: PhotoListProps) {
               </button>
               <button
                 type="button"
-                onClick={() => removeRound(round.id)}
+                onClick={() => removeFaceRound(round.id)}
                 className="absolute right-2 top-2 rounded-full p-1 text-cream/30 opacity-0 transition-opacity hover:bg-red-500/20 hover:text-red-400 group-hover:opacity-100"
                 aria-label="Usuń zdjęcie"
               >

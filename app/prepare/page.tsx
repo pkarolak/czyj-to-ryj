@@ -4,16 +4,20 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { HarmonyRoundList } from "@/components/prepare/harmony/HarmonyRoundList";
 import { PhotoEditor } from "@/components/prepare/PhotoEditor";
 import { PhotoList } from "@/components/prepare/PhotoList";
 import { PhotoUpload } from "@/components/prepare/PhotoUpload";
+import { PrepareTabs } from "@/components/prepare/PrepareTabs";
 import { PrepareToolbar } from "@/components/prepare/PrepareToolbar";
 import { ScoreSessionPanel } from "@/components/prepare/ScoreSessionPanel";
+import { ShowOrderEditor } from "@/components/prepare/ShowOrderEditor";
+import { TriviaRoundList } from "@/components/prepare/trivia/TriviaRoundList";
 import { useTournament } from "@/context/TournamentContext";
 
 export default function PreparePage() {
   const { isLoading } = useTournament();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -37,7 +41,7 @@ export default function PreparePage() {
             Tryb prowadzącego
           </h1>
           <p className="text-sm text-cream/50">
-            Dodaj zdjęcia, skadruj detale, podaj imiona i oznacz postacie
+            Przygotuj trzy konkurencje, ustal kolejność show i zarządzaj zespołami
           </p>
         </div>
       </header>
@@ -48,14 +52,31 @@ export default function PreparePage() {
         className="flex flex-col gap-8"
       >
         <PrepareToolbar />
-        <ScoreSessionPanel />
-        <PhotoUpload />
+        <ShowOrderEditor />
 
-        {selectedId ? (
-          <PhotoEditor roundId={selectedId} onDone={() => setSelectedId(null)} />
-        ) : (
-          <PhotoList selectedId={selectedId} onSelect={setSelectedId} />
-        )}
+        <PrepareTabs>
+          {(tab) => {
+            if (tab === "face") {
+              return selectedFaceId ? (
+                <PhotoEditor
+                  roundId={selectedFaceId}
+                  onDone={() => setSelectedFaceId(null)}
+                />
+              ) : (
+                <>
+                  <PhotoUpload />
+                  <PhotoList
+                    selectedId={selectedFaceId}
+                    onSelect={setSelectedFaceId}
+                  />
+                </>
+              );
+            }
+            if (tab === "harmony") return <HarmonyRoundList />;
+            if (tab === "trivia") return <TriviaRoundList />;
+            return <ScoreSessionPanel />;
+          }}
+        </PrepareTabs>
       </motion.div>
     </div>
   );

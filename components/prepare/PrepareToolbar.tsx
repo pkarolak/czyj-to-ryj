@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
 import { downloadTournament } from "@/lib/io/exportTournament";
 import { parseTournamentFile } from "@/lib/io/importTournament";
+import { buildShowQueue } from "@/lib/types/tournament";
 
 export function PrepareToolbar() {
   const {
     tournament,
     isSaving,
-    allReady,
+    showReady,
     setName,
     resetTournament,
     replaceTournament,
@@ -21,14 +22,20 @@ export function PrepareToolbar() {
   const [message, setMessage] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  const queueLength = buildShowQueue(tournament).length;
+  const hasContent =
+    tournament.faceRounds.length > 0 ||
+    tournament.harmonyRounds.length > 0 ||
+    tournament.triviaRounds.length > 0;
+
   const showMessage = (text: string) => {
     setMessage(text);
     setTimeout(() => setMessage(null), 4000);
   };
 
   const handleExport = async () => {
-    if (!tournament.rounds.length) {
-      showMessage("Dodaj przynajmniej jedno zdjęcie przed eksportem.");
+    if (!hasContent) {
+      showMessage("Dodaj przynajmniej jedną rundę przed eksportem.");
       return;
     }
     setIsExporting(true);
@@ -74,6 +81,7 @@ export function PrepareToolbar() {
         />
         <span className="text-sm text-cream/40">
           {isSaving ? "Zapisywanie…" : "Zapisano lokalnie"}
+          {queueLength > 0 && ` · ${queueLength} rund w show`}
         </span>
       </div>
 
@@ -100,7 +108,7 @@ export function PrepareToolbar() {
           Wyczyść wszystko
         </Button>
 
-        {allReady ? (
+        {showReady ? (
           <Link href="/game">
             <Button size="lg">
               <Gamepad2 className="h-5 w-5" />
@@ -111,7 +119,7 @@ export function PrepareToolbar() {
           <Button
             size="lg"
             disabled
-            title="Skadruj, podaj imię i ustaw marker dla każdego zdjęcia"
+            title="Przygotuj przynajmniej jedną gotową rundę w dowolnej sekcji"
           >
             <Gamepad2 className="h-5 w-5" />
             Przejdź do gry

@@ -7,8 +7,8 @@ import type {
 export async function exportTournamentToJson(
   state: TournamentState,
 ): Promise<ExportedTournament> {
-  const rounds = await Promise.all(
-    state.rounds.map(async (round) => ({
+  const faceRounds = await Promise.all(
+    state.faceRounds.map(async (round) => ({
       id: round.id,
       originalImageBase64: await blobToBase64(round.originalImageBlob),
       croppedImageBase64: round.croppedImageBlob
@@ -20,13 +20,33 @@ export async function exportTournamentToJson(
     })),
   );
 
+  const triviaRounds = await Promise.all(
+    state.triviaRounds.map(async (round) => ({
+      id: round.id,
+      type: round.type,
+      question: round.question,
+      imageBase64: round.imageBlob
+        ? await blobToBase64(round.imageBlob)
+        : null,
+      options: round.options,
+      correctAnswer: round.correctAnswer,
+    })),
+  );
+
   return {
-    version: 1,
+    version: 2,
     id: state.id,
     name: state.name,
     createdAt: state.createdAt,
     updatedAt: state.updatedAt,
-    rounds,
+    faceRounds,
+    harmonyRounds: state.harmonyRounds.map((r) => ({
+      id: r.id,
+      notes: r.notes,
+      songTitle: r.songTitle,
+    })),
+    triviaRounds,
+    showOrder: state.showOrder,
   };
 }
 

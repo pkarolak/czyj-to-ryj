@@ -3,26 +3,47 @@
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GuessingPhase } from "@/components/game/GuessingPhase";
+import { HarmonyPlayingPhase } from "@/components/game/harmony/HarmonyPlayingPhase";
+import { HarmonyRevealPhase } from "@/components/game/harmony/HarmonyRevealPhase";
 import { RevealedPhase } from "@/components/game/RevealedPhase";
 import { RoundScoringPanel } from "@/components/game/RoundScoringPanel";
 import { ScoresOverlay } from "@/components/game/ScoresOverlay";
+import { TriviaQuestionPhase } from "@/components/game/trivia/TriviaQuestionPhase";
+import { TriviaRevealPhase } from "@/components/game/trivia/TriviaRevealPhase";
 import { Button } from "@/components/ui/Button";
 import { useScoreRoom } from "@/hooks/useScoreRoom";
 import { useTournament } from "@/context/TournamentContext";
+import { unlockAudio } from "@/lib/audio/pianoPlayer";
 import { REVEAL_NAME_DELAY } from "@/lib/game/constants";
 import { getStoredRoomCode } from "@/lib/scores/roomService";
-import { allRoundsReady } from "@/lib/types/tournament";
+import { buildShowQueue, isShowReady, type ShowRound } from "@/lib/types/tournament";
 
-type GamePhase = "intro" | "guessing" | "revealed" | "complete";
+type GamePhase = "intro" | "active" | "revealed" | "complete";
+
+function roundNumberInSection(queue: ShowRound[], index: number): number {
+  const section = queue[index]?.sectionLabel;
+  let count = 0;
+  for (let i = 0; i <= index; i++) {
+    if (queue[i]?.sectionLabel === section) count++;
+  }
+  return count;
+}
 
 export function GameScreen() {
   const { tournament, isLoading } = useTournament();
-  const [roundIndex, setRoundIndex] = useState(0);
+  const [queueIndex, setQueueIndex] = useState(0);
   const [phase, setPhase] = useState<GamePhase>("intro");
   const [roomCode] = useState(() => getStoredRoomCode());
   const sirenRef = useRef<HTMLAudioElement | null>(null);
+
+  const queue = useMemo(() => buildShowQueue(tournament), [tournament]);
+  const current = queue[queueIndex] ?? null;
+  const isLastRound = queueIndex >= queue.length - 1;
+  const roundInSection = current
+    ? roundNumberInSection(queue, queueIndex)
+    : 0;
 
   const {
     room: scoreRoom,
@@ -30,14 +51,10 @@ export function GameScreen() {
     updateCurrentRound,
   } = useScoreRoom(roomCode);
 
-  const rounds = tournament.rounds;
-  const round = rounds[roundIndex] ?? null;
-  const isLastRound = roundIndex >= rounds.length - 1;
-
   useEffect(() => {
     if (!roomCode || !scoreRoom) return;
-    void updateCurrentRound(roundIndex + 1);
-  }, [roomCode, scoreRoom, roundIndex, updateCurrentRound]);
+    void updateCurrentRound(queueIndex + 1);
+  }, [roomCode, scoreRoom, queueIndex, updateCurrentRound]);
 
   const playSiren = useCallback(() => {
     if (!sirenRef.current) {
@@ -46,10 +63,15 @@ export function GameScreen() {
     void sirenRef.current.play().catch(() => {});
   }, []);
 
-  const handleStart = () => setPhase("guessing");
+  const handleStart = () => {
+    if (current?.type === "harmony") {
+      void unlockAudio();
+    }
+    setPhase("active");
+  };
 
   const handleReveal = () => {
-    if (phase !== "guessing") return;
+    if (phase !== "active") return;
     setPhase("revealed");
   };
 
@@ -58,13 +80,13 @@ export function GameScreen() {
       setPhase("complete");
       return;
     }
-    setRoundIndex((i) => i + 1);
+    setQueueIndex((i) => i + 1);
     setPhase("intro");
   };
 
   const handleRoundScore = async (teamIds: string[]) => {
-    if (!roomCode || !round) return;
-    await recordRoundScore(round.id, teamIds, roundIndex + 1);
+    if (!roomCode || !current) return;
+    await recordRoundScore(current.id, teamIds, queueIndex + 1);
   };
 
   if (isLoading) {
@@ -75,13 +97,12 @@ export function GameScreen() {
     );
   }
 
-  if (!allRoundsReady(rounds)) {
+  if (!isShowReady(tournament)) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
         <h1 className="font-display text-4xl text-gold">Brak gotowych rund</h1>
         <p className="max-w-md text-cream/60">
-          Każde zdjęcie musi mieć detal, imię i nazwisko oraz marker postaci w
-          trybie prowadzącego.
+          Przygotuj przynajmniej jedną gotową rundę w dowolnej sekcji teleturnieju.
         </p>
         <Link href="/prepare">
           <Button variant="secondary">Tryb prowadzącego</Button>
@@ -101,7 +122,7 @@ export function GameScreen() {
         >
           <h1 className="font-display text-5xl text-gold">Koniec teleturnieju!</h1>
           <p className="text-cream/60">
-            Wszystkie {rounds.length} rund zakończone. Dziękujemy za grę!
+            Wszystkie {queue.length} rund zakończone. Dziękujemy za grę!
           </p>
           <div className="flex gap-4">
             <Link href="/">
@@ -116,10 +137,12 @@ export function GameScreen() {
     );
   }
 
-  if (!round?.croppedPreviewUrl) return null;
+  if (!current) return null;
 
   const hasScoreTeams =
     scoreRoom && Object.keys(scoreRoom.teams ?? {}).length > 0;
+
+  const showNextButton = phase === "revealed";
 
   return (
     <div className="relative flex min-h-dvh flex-col">
@@ -136,15 +159,18 @@ export function GameScreen() {
           <p className="text-xs uppercase tracking-[0.25em] text-gold/60">
             {tournament.name}
           </p>
+          <p className="text-xs text-cream/40">{current.sectionLabel}</p>
           <p className="font-display text-lg text-cream/80">
-            Runda {roundIndex + 1} / {rounds.length}
+            Runda {roundInSection} · {queueIndex + 1}/{queue.length}
           </p>
         </div>
-        {phase === "revealed" ? (
+        {showNextButton ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: REVEAL_NAME_DELAY + 0.3 }}
+            transition={{
+              delay: current.type === "face" ? REVEAL_NAME_DELAY + 0.3 : 0.1,
+            }}
             className="shrink-0"
           >
             <Button
@@ -165,7 +191,7 @@ export function GameScreen() {
         <AnimatePresence mode="wait">
           {phase === "intro" && (
             <motion.div
-              key="intro"
+              key={`intro-${current.id}`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
@@ -173,44 +199,100 @@ export function GameScreen() {
               className="flex flex-col items-center text-center"
             >
               <p className="text-sm uppercase tracking-[0.4em] text-gold/70">
-                Przygotuj się
+                {current.sectionLabel}
               </p>
               <h1 className="mt-2 font-display text-7xl text-gold sm:text-8xl">
-                RUNDA {roundIndex + 1}
+                RUNDA {roundInSection}
               </h1>
-              <Button size="lg" className="mt-12 px-16 py-6 text-2xl" onClick={handleStart}>
+              <Button
+                size="lg"
+                className="mt-12 px-16 py-6 text-2xl"
+                onClick={handleStart}
+              >
                 START
               </Button>
             </motion.div>
           )}
 
-          <LayoutGroup id={`round-${round.id}`}>
-            {phase === "guessing" && (
+          {phase === "active" && current.type === "face" && current.data.croppedPreviewUrl && (
+            <LayoutGroup id={`round-${current.id}`}>
               <GuessingPhase
-                key={`guessing-${roundIndex}`}
-                croppedPreviewUrl={round.croppedPreviewUrl}
+                key={`guessing-${queueIndex}`}
+                croppedPreviewUrl={current.data.croppedPreviewUrl}
                 onReveal={handleReveal}
                 onTimeUp={playSiren}
               />
-            )}
+            </LayoutGroup>
+          )}
 
-            {phase === "revealed" && (
+          {phase === "active" && current.type === "harmony" && (
+            <HarmonyPlayingPhase
+              key={`harmony-${current.id}`}
+              round={current.data}
+              onReveal={handleReveal}
+            />
+          )}
+
+          {phase === "active" && current.type === "trivia" && (
+            <TriviaQuestionPhase
+              key={`trivia-q-${current.id}`}
+              round={current.data}
+              onReveal={handleReveal}
+            />
+          )}
+
+          {phase === "revealed" && current.type === "face" && (
+            <LayoutGroup id={`round-${current.id}`}>
               <motion.div
-                key="revealed"
+                key="revealed-face"
                 className="flex w-full flex-col items-center"
               >
-                <RevealedPhase round={round} />
+                <RevealedPhase round={current.data} />
                 {hasScoreTeams && scoreRoom && (
                   <RoundScoringPanel
-                    key={round.id}
+                    key={current.id}
                     room={scoreRoom}
-                    roundId={round.id}
+                    roundId={current.id}
                     onConfirm={handleRoundScore}
                   />
                 )}
               </motion.div>
-            )}
-          </LayoutGroup>
+            </LayoutGroup>
+          )}
+
+          {phase === "revealed" && current.type === "harmony" && (
+            <motion.div
+              key="revealed-harmony"
+              className="flex w-full flex-col items-center gap-8"
+            >
+              <HarmonyRevealPhase round={current.data} />
+              {hasScoreTeams && scoreRoom && (
+                <RoundScoringPanel
+                  key={current.id}
+                  room={scoreRoom}
+                  roundId={current.id}
+                  onConfirm={handleRoundScore}
+                />
+              )}
+            </motion.div>
+          )}
+
+          {phase === "revealed" && current.type === "trivia" && (
+            <motion.div
+              key="revealed-trivia"
+              className="flex w-full flex-col items-center gap-8"
+            >
+              <TriviaRevealPhase round={current.data} />
+              {hasScoreTeams && scoreRoom && (
+                <RoundScoringPanel
+                  key={current.id}
+                  room={scoreRoom}
+                  roundId={current.id}
+                  onConfirm={handleRoundScore}
+                />
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
     </div>
