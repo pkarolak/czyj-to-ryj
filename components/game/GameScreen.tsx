@@ -139,9 +139,6 @@ export function GameScreen() {
           <p className="font-display text-lg text-cream/80">
             Runda {roundIndex + 1} / {rounds.length}
           </p>
-          {roomCode && (
-            <p className="text-xs text-cream/30">Punktacja: {roomCode}</p>
-          )}
         </div>
         {phase === "revealed" ? (
           <motion.div

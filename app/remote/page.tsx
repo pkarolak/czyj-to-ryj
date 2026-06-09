@@ -1,6 +1,6 @@
 "use client";
 
-import { Monitor, Unplug } from "lucide-react";
+import { ChevronDown, Monitor, Plus, Unplug } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -21,6 +21,7 @@ function RemoteContent() {
     () => paramCode ?? getStoredRoomCode(),
   );
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [showAddTeam, setShowAddTeam] = useState(false);
 
   const {
     room,
@@ -115,17 +116,12 @@ function RemoteContent() {
         </button>
       </header>
 
-      <TeamForm
-        teamCount={teams.length}
-        onAdd={async (team) => {
-          await addTeamToRoom(team);
-        }}
-      />
-
-      <section className="mt-8">
+      <section>
         <h2 className="mb-4 font-display text-2xl text-cream/80">Punktacja</h2>
         {teams.length === 0 ? (
-          <p className="text-sm text-cream/40">Dodaj pierwszą drużynę powyżej.</p>
+          <p className="text-sm text-cream/40">
+            Brak drużyn — użyj przycisku poniżej, aby dodać pierwszą.
+          </p>
         ) : (
           <div className="flex flex-col gap-3">
             {teams.map((team) => (
@@ -138,6 +134,35 @@ function RemoteContent() {
           </div>
         )}
       </section>
+
+      <div className="mt-8">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full justify-between"
+          onClick={() => setShowAddTeam((open) => !open)}
+        >
+          <span className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Dodaj drużynę
+          </span>
+          <ChevronDown
+            className={`h-5 w-5 transition-transform ${showAddTeam ? "rotate-180" : ""}`}
+          />
+        </Button>
+
+        {showAddTeam && (
+          <div className="mt-3">
+            <TeamForm
+              teamCount={teams.length}
+              onAdd={async (team) => {
+                await addTeamToRoom(team);
+                setShowAddTeam(false);
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink/95 p-4 backdrop-blur">
         <Button

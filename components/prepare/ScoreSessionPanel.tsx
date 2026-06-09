@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Copy, Smartphone, Trophy } from "lucide-react";
+import { Copy, Smartphone, Trophy, Wifi } from "lucide-react";
 import { useState } from "react";
 import { FirebaseNotice } from "@/components/scores/FirebaseNotice";
 import { TeamForm } from "@/components/scores/TeamForm";
+import { TeamRoster } from "@/components/scores/TeamRoster";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useScoreRoom } from "@/hooks/useScoreRoom";
@@ -23,7 +24,8 @@ export function ScoreSessionPanel() {
   const [message, setMessage] = useState<string | null>(null);
   const isConfigured = isFirebaseConfigured();
 
-  const { room, addTeamToRoom } = useScoreRoom(roomCode);
+  const { room, isLoading, addTeamToRoom } = useScoreRoom(roomCode);
+  const teamCount = Object.keys(room?.teams ?? {}).length;
 
   const handleCreate = async () => {
     setIsCreating(true);
@@ -68,8 +70,8 @@ export function ScoreSessionPanel() {
         Zarządzanie sesją punktacji
       </h2>
       <p className="mb-6 text-sm text-cream/50">
-        Utwórz kod pokoju dla telefonu prowadzącego i opcjonalnie dodaj drużyny
-        przed grą.
+        Utwórz kod pokoju dla telefonu prowadzącego. Drużyny dodane na telefonie
+        lub tutaj synchronizują się na żywo.
       </p>
 
       {!roomCode ? (
@@ -106,9 +108,32 @@ export function ScoreSessionPanel() {
             </Link>
           </div>
 
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-xl text-cream/80">
+                Drużyny{teamCount > 0 ? ` (${teamCount})` : ""}
+              </h3>
+              {room && !isLoading && (
+                <span className="flex items-center gap-1.5 text-xs text-emerald-400/80">
+                  <Wifi className="h-3.5 w-3.5" />
+                  Na żywo
+                </span>
+              )}
+            </div>
+
+            {isLoading && !room ? (
+              <p className="text-sm text-cream/40">Łączenie z sesją…</p>
+            ) : (
+              <TeamRoster
+                teams={room?.teams}
+                emptyLabel="Brak drużyn — dodaj z telefonu lub formularza poniżej."
+              />
+            )}
+          </section>
+
           {room && (
             <TeamForm
-              teamCount={Object.keys(room.teams ?? {}).length}
+              teamCount={teamCount}
               onAdd={async (team) => {
                 await addTeamToRoom(team);
               }}

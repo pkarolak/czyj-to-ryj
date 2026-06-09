@@ -2,6 +2,10 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import {
+  resizeTeamPhotoToDataUrl,
+  TEAM_PHOTO_MAX_INPUT_BYTES,
+} from "@/lib/images/resizeTeamPhoto";
 import { TEAM_COLORS, type Team } from "@/lib/types/scoreRoom";
 
 type TeamFormProps = {
@@ -9,27 +13,30 @@ type TeamFormProps = {
   teamCount?: number;
 };
 
-const MAX_PHOTO_BYTES = 200 * 1024;
-
 export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
   const [name, setName] = useState("");
   const [captain, setCaptain] = useState("");
   const [color, setColor] = useState(TEAM_COLORS[teamCount % TEAM_COLORS.length]);
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhoto = async (file: File | undefined) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    if (file.size > MAX_PHOTO_BYTES) {
-      alert("Zdjęcie jest za duże (max 200 KB).");
-      return;
+    if (!file) return;
+    setPhotoError(null);
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await resizeTeamPhotoToDataUrl(file);
+      setPhotoDataUrl(dataUrl);
+    } catch (err) {
+      setPhotoError(
+        err instanceof Error ? err.message : "Nie udało się wczytać zdjęcia.",
+      );
+    } finally {
+      setIsProcessingPhoto(false);
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") setPhotoDataUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,12 +55,15 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
       setName("");
       setCaptain("");
       setPhotoDataUrl(null);
+      setPhotoError(null);
       setColor(TEAM_COLORS[(teamCount + 1) % TEAM_COLORS.length]);
       if (fileRef.current) fileRef.current.value = "";
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const maxMb = Math.round(TEAM_PHOTO_MAX_INPUT_BYTES / 1024 / 1024);
 
   return (
     <form
@@ -93,34 +103,52 @@ export function TeamForm({ onAdd, teamCount = 0 }: TeamFormProps) {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => fileRef.current?.click()}
-          >
-            {photoDataUrl ? "Zmień zdjęcie" : "Zdjęcie (opcja)"}
-          </Button>
-          {photoDataUrl && (
-            <button
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <Button
               type="button"
-              onClick={() => {
-                setPhotoDataUrl(null);
-                if (fileRef.current) fileRef.current.value = "";
-              }}
-              className="text-xs text-cream/40 underline"
+              variant="secondary"
+              size="sm"
+              disabled={isProcessingPhoto}
+              onClick={() => fileRef.current?.click()}
             >
-              Usuń
-            </button>
+              {isProcessingPhoto
+                ? "Przetwarzanie…"
+                : photoDataUrl
+                  ? "Zmień zdjęcie"
+                  : "Zdjęcie (opcja)"}
+            </Button>
+            {photoDataUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPhotoDataUrl(null);
+                  setPhotoError(null);
+                  if (fileRef.current) fileRef.current.value = "";
+                }}
+                className="text-xs text-cream/40 underline"
+              >
+                Usuń
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => handlePhoto(e.target.files?.[0])}
+            />
+          </div>
+          <p className="text-xs text-cream/40">
+            Zdjęcie z telefonu do {maxMb} MB — automatycznie zmniejszane przed
+            zapisem.
+          </p>
+          {photoError && (
+            <p className="text-xs text-red-400" role="alert">
+              {photoError}
+            </p>
           )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handlePhoto(e.target.files?.[0])}
-          />
         </div>
 
         <Button
