@@ -14,37 +14,37 @@ const HIGHLIGHTS = [
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-5 py-10 sm:px-6 sm:py-14">
+    <div className="flex w-full flex-1 flex-col items-center justify-center px-5 py-6 sm:px-6 lg:px-8 lg:py-4">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="flex w-full max-w-4xl flex-col"
+        className="flex w-full max-w-4xl flex-col lg:max-w-5xl"
       >
-        <header className="flex w-full items-center justify-between gap-5 overflow-visible sm:gap-8">
+        <header className="flex w-full items-center justify-between gap-4 overflow-visible sm:gap-6 lg:gap-10">
           <div className="min-w-0 text-left">
-            <p className="text-xs uppercase tracking-[0.3em] text-gold/80 sm:text-sm sm:tracking-[0.35em]">
+            <p className="text-xs uppercase tracking-[0.3em] text-gold/80 sm:text-sm sm:tracking-[0.35em] lg:text-base lg:tracking-[0.38em]">
               Teleturniej społecznościowo-satyryczny
             </p>
-            <h1 className="mt-2 font-display text-6xl leading-[0.9] text-gold sm:mt-3 sm:text-7xl lg:text-8xl">
+            <h1 className="mt-1.5 font-display text-5xl leading-[0.9] text-gold sm:mt-2 sm:text-6xl lg:mt-3 lg:text-8xl">
               Czyj to ryj?
             </h1>
           </div>
-          <BeanHeadReveal className="relative z-10 h-40 w-40 shrink-0 translate-y-4 sm:h-52 sm:w-52 sm:translate-y-5 lg:h-60 lg:w-60 lg:translate-y-6" />
+          <BeanHeadReveal className="relative z-10 h-32 w-32 shrink-0 translate-y-3 sm:h-44 sm:w-44 sm:translate-y-4 lg:h-56 lg:w-56 lg:translate-y-4 xl:h-60 xl:w-60" />
         </header>
 
-        <div className="relative z-0 mt-5 w-full text-left sm:mt-6">
-          <p className="text-lg font-medium leading-snug text-cream sm:text-xl">
+        <div className="relative z-0 mt-4 w-full text-left sm:mt-5 lg:mt-6">
+          <p className="text-base font-medium leading-snug text-cream sm:text-lg lg:text-xl">
             Najnowsza gra imprezowa, w której:
           </p>
-          <ul className="mt-5 space-y-4 sm:space-y-5">
+          <ul className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3 lg:mt-4 lg:space-y-3">
             {HIGHLIGHTS.map((line) => (
-              <li key={line} className="flex gap-3 sm:gap-4">
+              <li key={line} className="flex gap-2.5 sm:gap-3 lg:gap-3.5">
                 <span
                   aria-hidden
-                  className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-gold shadow-[0_0_10px_rgba(245,197,66,0.4)]"
+                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold shadow-[0_0_10px_rgba(245,197,66,0.4)] sm:mt-2 sm:h-2.5 sm:w-2.5 lg:mt-2.5 lg:h-3 lg:w-3"
                 />
-                <span className="text-base leading-relaxed text-cream/90 sm:text-lg">
+                <span className="text-sm leading-snug text-cream/90 sm:text-base lg:text-lg lg:leading-snug">
                   {line}
                 </span>
               </li>
@@ -52,7 +52,7 @@ export default function HomePage() {
           </ul>
         </div>
 
-        <div className="mt-9 flex w-full flex-row flex-wrap items-center gap-3 sm:mt-11 sm:gap-4">
+        <div className="mt-6 flex w-full flex-row flex-wrap items-center gap-3 sm:mt-8 lg:mt-7 lg:gap-4">
           <Link href="/game">
             <Button size="lg">
               <Clapperboard className="h-5 w-5" />

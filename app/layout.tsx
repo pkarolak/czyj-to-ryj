@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: `%s — ${APP_NAME}`,
   },
   description:
-    "Teleturniej społecznościowy — zgadnij tożsamość członków chóru po detalu ze zdjęcia.",
+    "Teleturniej społecznościowo-satyryczny — edycja jubileuszowa 35 lat chóru Dysonans.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

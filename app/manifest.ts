@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Czyj to ryj?",
     short_name: "Czyj to ryj",
-    description: "Teleturniej społecznościowy — zgadnij, czyj to detal!",
+    description:
+      "Teleturniej społecznościowo-satyryczny — edycja jubileuszowa 35 lat chóru Dysonans.",
     start_url: "/",
     display: "standalone",
     background_color: "#0a0a0f",
