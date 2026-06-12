@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Minus, Pencil, Plus } from "lucide-react";
 import type { TeamWithId } from "@/lib/types/scoreRoom";
 
 type ScoreControlCardProps = {
@@ -48,14 +48,30 @@ export function ScoreControlCard({
         avatar
       )}
 
-      <div className="min-w-0 flex-1">
+      <button
+        type="button"
+        onClick={onEdit}
+        disabled={!onEdit}
+        className="min-w-0 flex-1 text-left disabled:cursor-default"
+      >
         <p className="truncate font-display text-lg text-cream">{team.name}</p>
         <p className="truncate text-xs text-cream/50">{team.captain}</p>
-      </div>
+      </button>
 
-      <span className="w-10 text-center font-display text-2xl text-gold">
+      <span className="w-10 shrink-0 text-center font-display text-2xl text-gold">
         {team.score}
       </span>
+
+      {onEdit && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-cream/70 transition-colors hover:bg-white/10 hover:text-cream active:scale-95"
+          aria-label={`Edytuj drużynę ${team.name}`}
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
 
       <div className="flex gap-2">
         <button

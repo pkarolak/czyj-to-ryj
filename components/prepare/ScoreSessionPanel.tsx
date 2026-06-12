@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Copy, Smartphone, Trophy, Wifi } from "lucide-react";
 import { useState } from "react";
 import { FirebaseNotice } from "@/components/scores/FirebaseNotice";
+import { TeamEditSheet } from "@/components/scores/TeamEditSheet";
 import { TeamForm } from "@/components/scores/TeamForm";
 import { TeamRoster } from "@/components/scores/TeamRoster";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,7 @@ import {
   getStoredRoomCode,
   storeRoomCode,
 } from "@/lib/scores/roomService";
+import { sortTeamsByScore } from "@/lib/types/scoreRoom";
 
 export function ScoreSessionPanel() {
   const [roomCode, setRoomCode] = useState<string | null>(() =>
@@ -22,10 +24,21 @@ export function ScoreSessionPanel() {
   );
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const isConfigured = isFirebaseConfigured();
 
-  const { room, isLoading, addTeamToRoom } = useScoreRoom(roomCode);
+  const {
+    room,
+    isLoading,
+    addTeamToRoom,
+    removeTeamFromRoom,
+    updateTeamInRoom,
+  } = useScoreRoom(roomCode);
   const teamCount = Object.keys(room?.teams ?? {}).length;
+  const teams = sortTeamsByScore(room?.teams);
+  const editingTeam = editingTeamId
+    ? teams.find((team) => team.id === editingTeamId)
+    : null;
 
   const handleCreate = async () => {
     setIsCreating(true);
@@ -126,6 +139,8 @@ export function ScoreSessionPanel() {
             ) : (
               <TeamRoster
                 teams={room?.teams}
+                showScores
+                onEditTeam={setEditingTeamId}
                 emptyLabel="Brak drużyn — dodaj z telefonu lub formularza poniżej."
               />
             )}
@@ -136,6 +151,29 @@ export function ScoreSessionPanel() {
               teamCount={teamCount}
               onSubmit={async (team) => {
                 await addTeamToRoom(team);
+              }}
+            />
+          )}
+
+          {editingTeam && (
+            <TeamEditSheet
+              team={editingTeam}
+              onClose={() => setEditingTeamId(null)}
+              onSave={async (team) => {
+                await updateTeamInRoom(editingTeam.id, team);
+                setEditingTeamId(null);
+                setMessage(`Zapisano zmiany: ${team.name}`);
+              }}
+              onDelete={() => {
+                if (
+                  confirm(
+                    `Usunąć drużynę „${editingTeam.name}"? Tej operacji nie można cofnąć.`,
+                  )
+                ) {
+                  void removeTeamFromRoom(editingTeam.id);
+                  setEditingTeamId(null);
+                  setMessage("Drużyna usunięta.");
+                }
               }}
             />
           )}
