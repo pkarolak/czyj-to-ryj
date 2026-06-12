@@ -13,6 +13,7 @@ import {
 import { createRoundFromFile, withCroppedPreview } from "@/lib/images/createRoundFromFile";
 import { isImageFile, normalizeImageBlob, blobToDataUrl } from "@/lib/images/fileToBlob";
 import { clearTournament, loadTournament, saveTournament } from "@/lib/storage/tournamentStore";
+import { reorderItems } from "@/lib/utils/reorder";
 import {
   allRoundsCropped,
   allRoundsReady,
@@ -39,6 +40,7 @@ type TournamentContextValue = {
   setTimerSeconds: (category: CompetitionId, seconds: number) => void;
   addPhotos: (files: File[]) => Promise<void>;
   removeFaceRound: (id: string) => void;
+  reorderFaceRounds: (from: number, to: number) => void;
   updateRoundCrop: (
     id: string,
     croppedImageBlob: Blob,
@@ -51,6 +53,7 @@ type TournamentContextValue = {
   addHarmonyRound: (round: Omit<HarmonyRound, "id">) => void;
   updateHarmonyRound: (id: string, round: Omit<HarmonyRound, "id">) => void;
   removeHarmonyRound: (id: string) => void;
+  reorderHarmonyRounds: (from: number, to: number) => void;
   addTriviaRound: (round: Omit<TriviaRound, "id" | "imageBlob" | "imagePreviewUrl">, image?: File | null) => Promise<void>;
   updateTriviaRound: (
     id: string,
@@ -59,6 +62,7 @@ type TournamentContextValue = {
     removeImage?: boolean,
   ) => Promise<void>;
   removeTriviaRound: (id: string) => void;
+  reorderTriviaRounds: (from: number, to: number) => void;
   resetTournament: () => Promise<void>;
   replaceTournament: (state: TournamentState) => void;
 };
@@ -159,6 +163,13 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const reorderFaceRounds = useCallback((from: number, to: number) => {
+    setTournament((prev) => ({
+      ...prev,
+      faceRounds: reorderItems(prev.faceRounds, from, to),
+    }));
+  }, []);
+
   const updateRoundCrop = useCallback(
     async (id: string, croppedImageBlob: Blob, cropCoordinates: CropMeta) => {
       const cropped = await withCroppedPreview(croppedImageBlob);
@@ -218,6 +229,13 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     setTournament((prev) => ({
       ...prev,
       harmonyRounds: prev.harmonyRounds.filter((r) => r.id !== id),
+    }));
+  }, []);
+
+  const reorderHarmonyRounds = useCallback((from: number, to: number) => {
+    setTournament((prev) => ({
+      ...prev,
+      harmonyRounds: reorderItems(prev.harmonyRounds, from, to),
     }));
   }, []);
 
@@ -293,6 +311,13 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const reorderTriviaRounds = useCallback((from: number, to: number) => {
+    setTournament((prev) => ({
+      ...prev,
+      triviaRounds: reorderItems(prev.triviaRounds, from, to),
+    }));
+  }, []);
+
   const resetTournament = useCallback(async () => {
     skipSave.current = true;
     await clearTournament();
@@ -318,14 +343,17 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       setTimerSeconds,
       addPhotos,
       removeFaceRound,
+      reorderFaceRounds,
       updateRoundCrop,
       updateRoundDetails,
       addHarmonyRound,
       updateHarmonyRound,
       removeHarmonyRound,
+      reorderHarmonyRounds,
       addTriviaRound,
       updateTriviaRound,
       removeTriviaRound,
+      reorderTriviaRounds,
       resetTournament,
       replaceTournament,
     }),
@@ -339,14 +367,17 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       setTimerSeconds,
       addPhotos,
       removeFaceRound,
+      reorderFaceRounds,
       updateRoundCrop,
       updateRoundDetails,
       addHarmonyRound,
       updateHarmonyRound,
       removeHarmonyRound,
+      reorderHarmonyRounds,
       addTriviaRound,
       updateTriviaRound,
       removeTriviaRound,
+      reorderTriviaRounds,
       resetTournament,
       replaceTournament,
     ],
