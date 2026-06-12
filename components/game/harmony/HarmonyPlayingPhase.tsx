@@ -57,17 +57,6 @@ export function HarmonyPlayingPhase({
         <Music2 className="h-20 w-20" />
       </motion.div>
 
-      <div className="flex flex-wrap justify-center gap-2">
-        {round.notes.map((note, i) => (
-          <span
-            key={`${note}-${i}`}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-base text-cream/60"
-          >
-            {note}
-          </span>
-        ))}
-      </div>
-
       <Button
         size="lg"
         onClick={() => void handlePlay()}
